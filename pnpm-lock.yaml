@@ -14,6 +14,12 @@ importers:
       '@ai-sdk/react':
         specifier: ^1.2.12
         version: 1.2.12(react@19.1.0)(zod@3.25.61)
+      '@conform-to/react':
+        specifier: ^1.6.1
+        version: 1.6.1(react@19.1.0)
+      '@conform-to/zod':
+        specifier: ^1.6.1
+        version: 1.6.1(zod@3.25.61)
       '@headless-tree/core':
         specifier: ^1.0.1
         version: 1.0.1
@@ -47,9 +53,6 @@ importers:
       cmdk:
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@19.1.6(@types/react@19.1.7))(@types/react@19.1.7)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      conform:
-        specifier: ^0.2.16
-        version: 0.2.16
       jotai:
         specifier: ^2.12.5
         version: 2.12.5(@types/react@19.1.7)(react@19.1.0)
@@ -174,6 +177,19 @@ packages:
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
+
+  '@conform-to/dom@1.6.1':
+    resolution: {integrity: sha512-9JaMBM6hD8uBu6VIggXScQAxpKUFGNFydiZHUKbW5nXIvqptLjiPPf1DXHrO0tQpl9EH+BWQ8rXFuVX8L3cYcw==}
+
+  '@conform-to/react@1.6.1':
+    resolution: {integrity: sha512-wjvHlA1ZnMzcqBHeMczwCcS0LM3dFvH9275k3vogRhV6Haaur59eNL4XOB4LSVKMFMtZRCBB3Vxaisug4Uq2Qg==}
+    peerDependencies:
+      react: '>=18'
+
+  '@conform-to/zod@1.6.1':
+    resolution: {integrity: sha512-uhViaaxJ4IJsCwBxHRNQKU1kT2t7W0/a4/YHv3Qy0J0CQu/HB+UHORlhTjoHpH4XlRS+N6vdO+5qZOC1Oi1QPg==}
+    peerDependencies:
+      zod: ^3.21.0
 
   '@date-fns/tz@1.2.0':
     resolution: {integrity: sha512-LBrd7MiJZ9McsOgxqWX7AaxrDjcFVjWH/tIKJd7pnR7McaslGYOP1QmmiBXdJH/H/yLCT+rcQ7FaPBUxRGUtrg==}
@@ -2260,10 +2276,6 @@ packages:
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
-  conform@0.2.16:
-    resolution: {integrity: sha512-+XHzIH2PY4HgFDY0In0n7TGX+UNY8Joycfiki6ew7aK/rBHoMFPjpRwjYjFprciNnUkvMLzSsBDuBCbNTiTO8w==}
-    engines: {node: '>= 0.4.0'}
-
   cookie@1.0.2:
     resolution: {integrity: sha512-9Kr/j4O16ISv8zBBhJoi4bXOYNTkFLOqSL3UDB0njXxCXNezjeyVrJyGOWtgfs/q2km1gwBcfH8q1yEGoMYunA==}
     engines: {node: '>=18'}
@@ -3655,6 +3667,18 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.8
       '@jridgewell/trace-mapping': 0.3.25
+
+  '@conform-to/dom@1.6.1': {}
+
+  '@conform-to/react@1.6.1(react@19.1.0)':
+    dependencies:
+      '@conform-to/dom': 1.6.1
+      react: 19.1.0
+
+  '@conform-to/zod@1.6.1(zod@3.25.61)':
+    dependencies:
+      '@conform-to/dom': 1.6.1
+      zod: 3.25.61
 
   '@date-fns/tz@1.2.0': {}
 
@@ -6252,8 +6276,6 @@ snapshots:
     optional: true
 
   concat-map@0.0.1: {}
-
-  conform@0.2.16: {}
 
   cookie@1.0.2: {}
 
