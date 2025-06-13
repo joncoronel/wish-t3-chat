@@ -12,12 +12,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/hooks/use-auth";
 import { useChatUrl } from "@/hooks/use-chat-url";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { signOut } from "@/lib/auth/actions";
+import type { User } from "@supabase/supabase-js";
 
-export function Header() {
-  const { user, signOut } = useAuth();
+interface HeaderProps {
+  user: User | null;
+}
+
+export function Header({ user }: HeaderProps) {
   const { navigateToNewChat } = useChatUrl();
 
   const handleNewChat = () => {
@@ -27,6 +31,10 @@ export function Header() {
   const handleSettings = () => {
     // TODO: Implement settings
     console.log("Settings clicked");
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
   };
 
   return (
@@ -105,7 +113,9 @@ export function Header() {
                 Share Feedback
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut}>Sign out</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSignOut}>
+                Sign out
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )}
