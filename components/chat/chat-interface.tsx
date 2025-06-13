@@ -2,7 +2,12 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useChat } from "ai/react";
-import { useConversation, useMessages } from "@/hooks/use-conversations";
+
+import {
+  useConversation,
+  useMessages,
+  useConversations,
+} from "@/hooks/use-conversations";
 import { useChatUrl } from "@/hooks/use-chat-url";
 import { ChatWelcome } from "./chat-welcome";
 import { ChatMessages } from "./chat-messages";
@@ -81,6 +86,9 @@ export function ChatInterface({
   const { data: messages = [], isLoading: isLoadingMessages } = useMessages(
     chatId || "",
   );
+
+  // Get all conversations for welcome screen optimistic updates
+  const { data: allConversations = [] } = useConversations(userId || "");
 
   const {
     messages: chatMessages,
@@ -216,8 +224,7 @@ export function ChatInterface({
         if (!chatId) {
           console.log("Starting new conversation...");
 
-          // If this is from a pending message, the conversation was already optimistically created
-          // by ChatInputWrapper, so we just need to use the chatId from the URL
+          // If this is from a pending message, extract the conversation ID from URL and do optimistic update
           if (fromPendingMessage) {
             // Extract conversationId from the current URL since we're now on /chat/[id]
             const currentPath = window.location.pathname;
@@ -258,26 +265,23 @@ export function ChatInterface({
             updated_at: new Date().toISOString(),
           };
 
-          // Add to SWR cache optimistically with correct syntax
+          // For welcome screen prompts, we still need to do optimistic update
+          // since they don't go through ChatInputWrapper
+          // Use the same safe pattern as ChatInputWrapper
           mutate(
             `conversations-${userId}`,
-            (
-              currentConversations: Array<typeof optimisticConversation> = [],
-            ) => {
-              console.log("Adding optimistic conversation to SWR cache");
-              return [optimisticConversation, ...currentConversations];
-            },
+            [optimisticConversation, ...allConversations],
             false, // Don't revalidate immediately
           );
 
           // Navigate to the new conversation
           navigateToChat(conversationId);
 
-          // Send the message - the API will create the conversation if it doesn't exist
-          await append({
-            role: "user",
-            content: messageContent,
-          });
+          // Store the message for when the component remounts (same as input wrapper)
+          sessionStorage.setItem(
+            `pendingMessage-${conversationId}`,
+            messageContent,
+          );
 
           // Don't immediately revalidate - let the onFinish callback handle it
           // This prevents the optimistic update from being overwritten too quickly

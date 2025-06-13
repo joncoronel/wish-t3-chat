@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { ChatInput } from "./chat-input";
 import { useChatUrl } from "@/hooks/use-chat-url";
+import { useConversations } from "@/hooks/use-conversations";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { v4 as uuidv4 } from "uuid";
@@ -26,6 +27,9 @@ export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
   const chatId = params?.id as string | undefined;
   const { navigateToChat } = useChatUrl();
   const [selectedModel, setSelectedModel] = useState<string>("gpt-4");
+
+  // Get current conversations for optimistic updates
+  const { data: allConversations = [] } = useConversations(userId || "");
 
   const handleSendMessage = async (messageContent: string) => {
     if (!userId) {
@@ -58,13 +62,10 @@ export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
           updated_at: new Date().toISOString(),
         };
 
-        // Add to SWR cache optimistically
+        // Add to SWR cache optimistically with current conversations
         mutate(
           `conversations-${userId}`,
-          (currentConversations: Conversation[] = []) => {
-            console.log("Adding optimistic conversation to SWR cache");
-            return [optimisticConversation, ...currentConversations];
-          },
+          [optimisticConversation, ...allConversations],
           false, // Don't revalidate immediately
         );
 
