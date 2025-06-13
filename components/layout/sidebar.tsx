@@ -113,7 +113,7 @@ export function Sidebar({ userId }: SidebarProps) {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground text-xs">
-                          {formatDate(conversation.created_at)}
+                          {formatDate(conversation.updated_at)}
                         </span>
                         {conversation.is_shared && (
                           <Badge variant="secondary" className="text-xs">
