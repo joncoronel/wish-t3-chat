@@ -2,8 +2,7 @@
 
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
-import { JotaiProvider } from "./jotai-provider";
-import { AuthProvider } from "./auth-provider";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import type { ReactNode } from "react";
 
 interface ProvidersProps {
@@ -12,18 +11,16 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <JotaiProvider>
+    <NuqsAdapter>
       <ThemeProvider
         attribute="class"
         defaultTheme="dark"
         enableSystem
         disableTransitionOnChange
       >
-        <AuthProvider>
-          {children}
-          <Toaster position="top-right" expand={false} richColors closeButton />
-        </AuthProvider>
+        {children}
+        <Toaster position="top-right" expand={false} richColors closeButton />
       </ThemeProvider>
-    </JotaiProvider>
+    </NuqsAdapter>
   );
 }

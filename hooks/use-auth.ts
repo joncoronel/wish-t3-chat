@@ -1,131 +1,45 @@
-import { useAtom } from "jotai";
-import {
-  sessionAtom,
-  authUserAtom,
-  userSettingsAtom,
-  isAuthLoadingAtom,
-  isAuthenticatedAtom,
-} from "@/store";
-import { auth, AuthError } from "@/lib/auth";
-import { addToastAtom } from "@/store";
-import type { LoginForm, SignUpForm } from "@/types";
+"use client";
+
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 export function useAuth() {
-  const [session] = useAtom(sessionAtom);
-  const [user] = useAtom(authUserAtom);
-  const [userSettings] = useAtom(userSettingsAtom);
-  const [isLoading] = useAtom(isAuthLoadingAtom);
-  const [isAuthenticated] = useAtom(isAuthenticatedAtom);
-  const [, addToast] = useAtom(addToastAtom);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const signUp = async (data: SignUpForm) => {
-    try {
-      await auth.signUp(data);
-      addToast({
-        type: "success",
-        title: "Account created",
-        description: "Please check your email to verify your account.",
-      });
-    } catch (error) {
-      if (error instanceof AuthError) {
-        addToast({
-          type: "error",
-          title: "Sign up failed",
-          description: error.message,
-        });
-      }
-      throw error;
-    }
-  };
+  useEffect(() => {
+    const supabase = createClient();
 
-  const signIn = async (data: LoginForm) => {
-    try {
-      await auth.signIn(data);
-      addToast({
-        type: "success",
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
-      });
-    } catch (error) {
-      if (error instanceof AuthError) {
-        addToast({
-          type: "error",
-          title: "Sign in failed",
-          description: error.message,
-        });
-      }
-      throw error;
-    }
-  };
+    // Get initial user
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
 
-  const signInWithOAuth = async (provider: "google" | "github" | "discord") => {
-    try {
-      await auth.signInWithOAuth(provider);
-    } catch (error) {
-      if (error instanceof AuthError) {
-        addToast({
-          type: "error",
-          title: "OAuth sign in failed",
-          description: error.message,
-        });
-      }
-      throw error;
-    }
-  };
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    getUser();
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const signOut = async () => {
-    try {
-      await auth.signOut();
-      addToast({
-        type: "success",
-        title: "Signed out",
-        description: "You have been signed out successfully.",
-      });
-    } catch (error) {
-      if (error instanceof AuthError) {
-        addToast({
-          type: "error",
-          title: "Sign out failed",
-          description: error.message,
-        });
-      }
-      throw error;
-    }
-  };
-
-  const resetPassword = async (email: string) => {
-    try {
-      await auth.resetPassword(email);
-      addToast({
-        type: "success",
-        title: "Reset email sent",
-        description: "Please check your email for password reset instructions.",
-      });
-    } catch (error) {
-      if (error instanceof AuthError) {
-        addToast({
-          type: "error",
-          title: "Reset failed",
-          description: error.message,
-        });
-      }
-      throw error;
-    }
+    await createClient().auth.signOut();
   };
 
   return {
-    // State
-    session,
     user,
-    userSettings,
-    isLoading,
-    isAuthenticated,
-
-    // Actions
-    signUp,
-    signIn,
-    signInWithOAuth,
+    loading,
     signOut,
-    resetPassword,
   };
 }

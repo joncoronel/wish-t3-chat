@@ -1,6 +1,5 @@
 "use client";
 
-import { useAtom } from "jotai";
 import { Menu, Settings, Share, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,25 +12,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import {
-  toggleSidebarAtom,
-  isNewChatModalOpenAtom,
-  isSettingsModalOpenAtom,
-} from "@/store";
 import { useAuth } from "@/hooks/use-auth";
+import { useChatUrl } from "@/hooks/use-chat-url";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 export function Header() {
-  const [, toggleSidebar] = useAtom(toggleSidebarAtom);
-  const [, setNewChatModalOpen] = useAtom(isNewChatModalOpenAtom);
-  const [, setSettingsModalOpen] = useAtom(isSettingsModalOpenAtom);
   const { user, signOut } = useAuth();
+  const { navigateToNewChat } = useChatUrl();
 
   const handleNewChat = () => {
-    setNewChatModalOpen(true);
+    navigateToNewChat();
   };
 
   const handleSettings = () => {
-    setSettingsModalOpen(true);
+    // TODO: Implement settings
+    console.log("Settings clicked");
   };
 
   return (
@@ -40,8 +35,11 @@ export function Header() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={toggleSidebar}
           className="h-8 w-8 p-0"
+          onClick={() => {
+            // TODO: Implement sidebar toggle if needed
+            console.log("Sidebar toggle clicked");
+          }}
         >
           <Menu className="h-4 w-4" />
           <span className="sr-only">Toggle sidebar</span>
@@ -62,6 +60,9 @@ export function Header() {
           <span className="sr-only">Search</span>
         </Button>
 
+        {/* Theme switcher */}
+        <ThemeSwitcher />
+
         {/* New chat button */}
         <Button variant="ghost" size="sm" onClick={handleNewChat}>
           <Plus className="mr-2 h-4 w-4" />
@@ -74,11 +75,11 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 rounded-full p-0">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatar_url || undefined} />
+                  <AvatarImage src={user.user_metadata?.avatar_url} />
                   <AvatarFallback>
-                    {user.full_name
-                      ? user.full_name.charAt(0).toUpperCase()
-                      : user.email.charAt(0).toUpperCase()}
+                    {user.user_metadata?.full_name
+                      ? user.user_metadata.full_name.charAt(0).toUpperCase()
+                      : user.email?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -87,7 +88,7 @@ export function Header() {
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm leading-none font-medium">
-                    {user.full_name || "User"}
+                    {user.user_metadata?.full_name || "User"}
                   </p>
                   <p className="text-muted-foreground text-xs leading-none">
                     {user.email}

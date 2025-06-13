@@ -30,12 +30,15 @@ export const activeConversationMessagesAtom = atom((get) => {
 
   if (!activeConversationId) return [];
 
-  return messages
+  // Filter messages for the active conversation
+  const filteredMessages = messages
     .filter((message) => message.conversation_id === activeConversationId)
     .sort(
       (a, b) =>
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     );
+
+  return filteredMessages;
 });
 
 export const hasActiveConversationAtom = atom(
@@ -47,7 +50,7 @@ export const setActiveConversationAtom = atom(
   null,
   (get, set, conversation: Conversation | null) => {
     set(activeConversationAtom, conversation);
-    // Clear messages when switching conversations
+    // Only clear messages when explicitly going to new chat (null conversation)
     if (conversation === null) {
       set(messagesAtom, []);
     }
@@ -102,5 +105,21 @@ export const setChatSettingsAtom = atom(
   (get, set, settings: Partial<ChatSettings>) => {
     const currentSettings = get(chatSettingsAtom);
     set(chatSettingsAtom, { ...currentSettings, ...settings });
+  },
+);
+
+export const setActiveConversationWithMessagesAtom = atom(
+  null,
+  (get, set, conversation: Conversation | null, messages: Message[] = []) => {
+    if (conversation) {
+      // When switching to a specific conversation, replace all messages with the new ones
+      // This prevents showing old messages from other conversations
+      set(messagesAtom, messages);
+      set(activeConversationAtom, conversation);
+    } else {
+      // When clearing conversation (new chat), clear all messages
+      set(messagesAtom, []);
+      set(activeConversationAtom, null);
+    }
   },
 );

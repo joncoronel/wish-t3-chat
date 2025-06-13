@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import type { LoginForm, SignUpForm, AuthUser } from "@/types";
+import type { AuthUser } from "@/types";
 import type { Session } from "@supabase/supabase-js";
 
 export class AuthError extends Error {
@@ -12,42 +12,8 @@ export class AuthError extends Error {
   }
 }
 
-export const auth = {
-  async signUp({ email, password, full_name }: SignUpForm) {
-    const supabase = createClient();
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name,
-        },
-      },
-    });
-
-    if (error) {
-      throw new AuthError(error.message, error.message);
-    }
-
-    return data;
-  },
-
-  async signIn({ email, password }: LoginForm) {
-    const supabase = createClient();
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      throw new AuthError(error.message, error.message);
-    }
-
-    return data;
-  },
-
+// Client-side auth utilities (for browser-only operations)
+export const clientAuth = {
   async signInWithOAuth(provider: "google" | "github" | "discord") {
     const supabase = createClient();
 
@@ -63,38 +29,6 @@ export const auth = {
     }
 
     return data;
-  },
-
-  async signOut() {
-    const supabase = createClient();
-
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      throw new AuthError(error.message, error.message);
-    }
-  },
-
-  async resetPassword(email: string) {
-    const supabase = createClient();
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
-    });
-
-    if (error) {
-      throw new AuthError(error.message, error.message);
-    }
-  },
-
-  async updatePassword(password: string) {
-    const supabase = createClient();
-
-    const { error } = await supabase.auth.updateUser({ password });
-
-    if (error) {
-      throw new AuthError(error.message, error.message);
-    }
   },
 
   async updateProfile(updates: Partial<AuthUser>) {
@@ -155,4 +89,52 @@ export const auth = {
       callback(session);
     });
   },
+};
+
+// Re-export server actions for convenience
+export { login, signup } from "./actions";
+
+// Legacy compatibility - deprecated, use server actions instead
+export const auth = {
+  async signUp() {
+    console.warn(
+      "auth.signUp is deprecated. Use the signup server action instead.",
+    );
+    throw new Error("Use server actions for auth operations");
+  },
+
+  async signIn() {
+    console.warn(
+      "auth.signIn is deprecated. Use the login server action instead.",
+    );
+    throw new Error("Use server actions for auth operations");
+  },
+
+  async signOut() {
+    console.warn(
+      "auth.signOut is deprecated. Use server actions for auth operations",
+    );
+    throw new Error("Use server actions for auth operations");
+  },
+
+  async resetPassword() {
+    console.warn(
+      "auth.resetPassword is deprecated. Use server actions for auth operations",
+    );
+    throw new Error("Use server actions for auth operations");
+  },
+
+  async updatePassword() {
+    console.warn(
+      "auth.updatePassword is deprecated. Use server actions for auth operations",
+    );
+    throw new Error("Use server actions for auth operations");
+  },
+
+  // Keep client-side methods
+  signInWithOAuth: clientAuth.signInWithOAuth,
+  updateProfile: clientAuth.updateProfile,
+  getSession: clientAuth.getSession,
+  getUser: clientAuth.getUser,
+  onAuthStateChange: clientAuth.onAuthStateChange,
 };

@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import * as React from "react";
 import { ItemInstance } from "@headless-tree/core";
 import { ChevronDownIcon } from "lucide-react";
