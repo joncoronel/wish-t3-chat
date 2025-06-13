@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
 import { SWRConfig } from "swr";
-import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 import { getConversation, getMessages } from "@/lib/data/conversations";
 import { ChatInterface } from "@/components/chat/chat-interface";
 
@@ -10,22 +9,21 @@ interface ChatPageProps {
 
 export default async function ChatPage({ params }: ChatPageProps) {
   const { id } = await params;
+  const user = await getUser();
 
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
-
-  if (error || !data?.user) {
-    redirect("/auth/login");
+  if (!user) {
+    // This should be handled by parent layout, but just in case
+    return null;
   }
 
   // Start fetching conversation and messages on the server (but don't await)
-  const conversationPromise = getConversation(id, data.user.id);
+  const conversationPromise = getConversation(id, user.id);
   const messagesPromise = getMessages(id);
 
   // For new conversations that don't exist yet, let the client handle it
   // Only redirect if there's a real error (not just missing conversation)
   const fallbackData: Record<string, unknown> = {
-    [`conversation-${id}-${data.user.id}`]: conversationPromise,
+    [`conversation-${id}-${user.id}`]: conversationPromise,
     [`messages-${id}`]: messagesPromise,
   };
 
@@ -35,7 +33,7 @@ export default async function ChatPage({ params }: ChatPageProps) {
         fallback: fallbackData,
       }}
     >
-      <ChatInterface chatId={id} userId={data.user.id} className="h-full" />
+      <ChatInterface chatId={id} userId={user.id} className="h-full" />
     </SWRConfig>
   );
 }

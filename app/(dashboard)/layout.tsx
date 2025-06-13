@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { SWRConfig } from "swr";
-import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 import { getConversations } from "@/lib/data/conversations";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -10,28 +10,27 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
+  const user = await getUser();
 
-  if (error || !data?.user) {
+  if (!user) {
     redirect("/auth/login");
   }
 
   // Fetch conversations on the server
-  const conversations = await getConversations(data.user.id);
+  const conversations = await getConversations(user.id);
 
   return (
     <SWRConfig
       value={{
         fallback: {
-          [`conversations-${data.user.id}`]: conversations,
+          [`conversations-${user.id}`]: conversations,
         },
       }}
     >
       <div className="flex h-full flex-col">
         <Header />
         <div className="flex flex-1 overflow-hidden">
-          <Sidebar userId={data.user.id} />
+          <Sidebar userId={user.id} />
           <main className="flex flex-1 flex-col overflow-hidden">
             {children}
           </main>

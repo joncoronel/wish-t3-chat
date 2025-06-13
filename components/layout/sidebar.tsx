@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { NewChatButton } from "@/components/chat/new-chat-button";
 import { cn } from "@/lib/utils";
-import type { Conversation } from "@/types";
 import { DeleteConversationDialog } from "@/components/chat/delete-conversation-dialog";
 
 interface SidebarProps {
@@ -18,8 +17,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ userId }: SidebarProps) {
-  const { navigateToChat } = useChatUrl();
   const pathname = usePathname();
+  const { navigateToChat } = useChatUrl();
   const { data: conversations = [] } = useConversations(userId);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -34,9 +33,11 @@ export function Sidebar({ userId }: SidebarProps) {
       conversation.model.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const handleSelectConversation = (conversation: Conversation) => {
-    // Don't set active conversation here - let ChatInterface handle it based on URL
-    navigateToChat(conversation.id);
+  const handleMouseDown = (conversationId: string, event: React.MouseEvent) => {
+    // Only navigate on left mouse button
+    if (event.button === 0) {
+      navigateToChat(conversationId);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -102,7 +103,7 @@ export function Sidebar({ userId }: SidebarProps) {
                       "h-auto w-full justify-start p-3 pr-12 text-left",
                       currentChatId === conversation.id && "bg-secondary",
                     )}
-                    onClick={() => handleSelectConversation(conversation)}
+                    onMouseDown={(e) => handleMouseDown(conversation.id, e)}
                   >
                     <div className="flex w-full min-w-0 flex-col gap-1">
                       <div className="flex items-center justify-between gap-2">
