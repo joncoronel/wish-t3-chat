@@ -1,28 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useChat } from "ai/react";
 import { useConversation, useMessages } from "@/hooks/use-conversations";
 import { useChatUrl } from "@/hooks/use-chat-url";
-import { createClient } from "@/lib/supabase/client";
-import { MessageComponent } from "./message";
-import { ChatInput } from "./chat-input";
+import { ChatWelcome } from "./chat-welcome";
+import { ChatMessages } from "./chat-messages";
 
-// Fetch conversations function for optimistic updates
-async function fetchConversations(userId: string) {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("conversations")
-    .select("*")
-    .eq("user_id", userId)
-    .order("updated_at", { ascending: false });
-
-  if (error) throw error;
-  return data || [];
-}
-import { Button } from "@/components/ui/button";
-
-import { Share, Settings, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { mutate } from "swr";
@@ -43,17 +27,11 @@ export function ChatInterface({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { navigateToChat } = useChatUrl();
 
-  // Debug component lifecycle
-  useEffect(() => {
-    console.log("ChatInterface mounted with chatId:", chatId);
-    return () => {
-      console.log("ChatInterface unmounting, chatId was:", chatId);
-    };
-  }, [chatId]);
+  // Debug component lifecycle - will be added after handleSendMessage
+
   const [selectedCategory, setSelectedCategory] = useState<
     keyof typeof categoryPrompts | "default"
   >("default");
-  const [selectedModel, setSelectedModel] = useState<string>("gpt-4");
 
   // Track the active conversation ID for new chats
   const [activeConversationId, setActiveConversationId] = useState<
@@ -109,12 +87,17 @@ export function ChatInterface({
     append,
     isLoading,
     error,
-    stop,
+    setMessages,
   } = useChat({
     api: "/api/chat",
     id: currentConversationId || "temp",
+    initialMessages: messages.map((msg) => ({
+      id: msg.id,
+      role: msg.role as "user" | "assistant" | "system",
+      content: msg.content,
+    })),
     body: {
-      model: selectedModel,
+      model: "gpt-4",
       temperature: 0.7,
       max_tokens: 2048,
       conversationId: currentConversationId,
@@ -156,6 +139,20 @@ export function ChatInterface({
     },
   });
 
+  // Sync database messages with chat messages when they change
+  useEffect(() => {
+    if (messages.length > 0 && chatMessages.length === 0) {
+      console.log("Syncing database messages to chat hook:", messages.length);
+      setMessages(
+        messages.map((msg) => ({
+          id: msg.id,
+          role: msg.role as "user" | "assistant" | "system",
+          content: msg.content,
+        })),
+      );
+    }
+  }, [messages, chatMessages.length, setMessages]);
+
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -176,11 +173,8 @@ export function ChatInterface({
   }, [chatMessages, currentConversationId, chatId, activeConversationId]);
 
   // Combined messages for display
-  // Prioritize live messages from useChat over database messages for better real-time experience
-  const displayMessages =
-    chatMessages.length > 0
-      ? chatMessages // Show live streaming messages when available
-      : messages; // Fall back to database messages when no live messages
+  // Use chatMessages as the source of truth since we sync database messages into it
+  const displayMessages = chatMessages;
 
   // Debug logging for troubleshooting
   console.log("Chat state debug:", {
@@ -203,313 +197,171 @@ export function ChatInterface({
     })),
   });
 
-  const handleSendMessage = async (messageContent: string) => {
-    if (!userId) {
-      toast.error("Please sign in to send messages");
-      return;
-    }
-
-    console.log("Sending message:", messageContent);
-
-    try {
-      // If this is a new chat (no chatId), generate conversation ID but don't navigate yet
-      if (!chatId) {
-        console.log("Starting new conversation...");
-
-        const conversationId = uuidv4();
-
-        // Set the active conversation ID for the useChat hook
-        setActiveConversationId(conversationId);
-
-        // Optimistically add the conversation to the sidebar immediately
-        const optimisticConversation = {
-          id: conversationId,
-          user_id: userId,
-          title:
-            messageContent.slice(0, 50) +
-            (messageContent.length > 50 ? "..." : ""),
-          model: selectedModel,
-          system_prompt: null,
-          is_shared: false,
-          share_token: null,
-          folder_id: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-
-        // Optimistically update the conversations cache
-        mutate(
-          `conversations-${userId}`,
-          async (
-            currentConversations: Array<typeof optimisticConversation> = [],
-          ) => {
-            console.log(
-              "Optimistic update - current conversations:",
-              currentConversations.length,
-              currentConversations.map((c) => ({
-                id: c.id,
-                title: c.title.slice(0, 30),
-              })),
-            );
-
-            // If we don't have current conversations in cache, fetch them first
-            if (currentConversations.length === 0) {
-              console.log("No conversations in cache, fetching fresh data...");
-              try {
-                const freshConversations = await fetchConversations(userId);
-                console.log(
-                  "Fetched fresh conversations:",
-                  freshConversations.length,
-                );
-                const newList = [optimisticConversation, ...freshConversations];
-                console.log("Merged with fresh data, total:", newList.length);
-                return newList;
-              } catch (error) {
-                console.error("Failed to fetch fresh conversations:", error);
-                // Fall back to just the optimistic conversation
-                return [optimisticConversation];
-              }
-            }
-
-            // Only add if this conversation doesn't already exist
-            const existingIndex = currentConversations.findIndex(
-              (conv) => conv.id === conversationId,
-            );
-            if (existingIndex === -1) {
-              const newList = [optimisticConversation, ...currentConversations];
-              console.log(
-                "Adding new conversation, total:",
-                newList.length,
-                newList.map((c) => ({ id: c.id, title: c.title.slice(0, 30) })),
-              );
-              return newList;
-            }
-            console.log("Conversation already exists, keeping current list");
-            return currentConversations;
-          },
-          false, // Don't revalidate immediately
-        );
-
-        // Navigate immediately to show the URL change
-        navigateToChat(conversationId);
-
-        // Send the message - the API will create the conversation if it doesn't exist
-        await append({
-          role: "user",
-          content: messageContent,
-        });
-
-        // Don't immediately revalidate - let the onFinish callback handle it
-        // This prevents the optimistic update from being overwritten too quickly
-      } else {
-        // For existing chats, just send the message normally
-        await append({
-          role: "user",
-          content: messageContent,
-        });
+  const handleSendMessage = useCallback(
+    async (messageContent: string, fromPendingMessage = false) => {
+      if (!userId) {
+        toast.error("Please sign in to send messages");
+        return;
       }
-    } catch (error) {
-      console.error("Error sending message:", error);
-      toast.error("Failed to send message");
+
+      console.log(
+        "Sending message:",
+        messageContent,
+        "fromPending:",
+        fromPendingMessage,
+      );
+
+      try {
+        // If this is a new chat (no chatId)
+        if (!chatId) {
+          console.log("Starting new conversation...");
+
+          // If this is from a pending message, the conversation was already optimistically created
+          // by ChatInputWrapper, so we just need to use the chatId from the URL
+          if (fromPendingMessage) {
+            // Extract conversationId from the current URL since we're now on /chat/[id]
+            const currentPath = window.location.pathname;
+            const pathParts = currentPath.split("/");
+            const urlConversationId = pathParts[pathParts.length - 1];
+
+            if (urlConversationId && urlConversationId !== "chat") {
+              setActiveConversationId(urlConversationId);
+
+              // Send the message - the API will create the conversation if it doesn't exist
+              await append({
+                role: "user",
+                content: messageContent,
+              });
+              return;
+            }
+          }
+
+          // For welcome screen prompts, create new conversation optimistically
+          const conversationId = uuidv4();
+
+          // Set the active conversation ID for the useChat hook
+          setActiveConversationId(conversationId);
+
+          // Optimistically add the conversation to the sidebar immediately
+          const optimisticConversation = {
+            id: conversationId,
+            user_id: userId,
+            title:
+              messageContent.slice(0, 50) +
+              (messageContent.length > 50 ? "..." : ""),
+            model: "gpt-4",
+            system_prompt: null,
+            is_shared: false,
+            share_token: null,
+            folder_id: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+
+          // Add to SWR cache optimistically with correct syntax
+          mutate(
+            `conversations-${userId}`,
+            (
+              currentConversations: Array<typeof optimisticConversation> = [],
+            ) => {
+              console.log("Adding optimistic conversation to SWR cache");
+              return [optimisticConversation, ...currentConversations];
+            },
+            false, // Don't revalidate immediately
+          );
+
+          // Navigate to the new conversation
+          navigateToChat(conversationId);
+
+          // Send the message - the API will create the conversation if it doesn't exist
+          await append({
+            role: "user",
+            content: messageContent,
+          });
+
+          // Don't immediately revalidate - let the onFinish callback handle it
+          // This prevents the optimistic update from being overwritten too quickly
+        } else {
+          // For existing chats, just send the message normally
+          await append({
+            role: "user",
+            content: messageContent,
+          });
+        }
+      } catch (error) {
+        console.error("Error sending message:", error);
+        toast.error("Failed to send message");
+      }
+    },
+    [userId, chatId, append, navigateToChat, setActiveConversationId],
+  );
+
+  // Debug component lifecycle and handle pending messages
+  useEffect(() => {
+    console.log("ChatInterface mounted with chatId:", chatId);
+
+    // Check for pending message from sessionStorage
+    if (chatId) {
+      const pendingMessage = sessionStorage.getItem(`pendingMessage-${chatId}`);
+      if (pendingMessage) {
+        console.log("Found pending message:", pendingMessage);
+        sessionStorage.removeItem(`pendingMessage-${chatId}`);
+
+        // Send the pending message after a brief delay to ensure component is ready
+        setTimeout(() => {
+          handleSendMessage(pendingMessage, true);
+        }, 100);
+      }
     }
-  };
 
-  const handleStopStreaming = () => {
-    stop();
-  };
+    // Listen for messages from ChatInputWrapper for existing chats
+    const handleChatMessage = (event: CustomEvent) => {
+      const { chatId: eventChatId, message } = event.detail;
+      if (eventChatId === chatId) {
+        console.log("Received message from input wrapper:", message);
+        handleSendMessage(message);
+      }
+    };
 
-  const handleShare = () => {
-    toast.info("Sharing feature coming soon!");
-  };
+    window.addEventListener(
+      "chat-send-message",
+      handleChatMessage as EventListener,
+    );
 
-  const handleSettings = () => {
-    toast.info("Settings panel coming soon!");
-  };
+    return () => {
+      console.log("ChatInterface unmounting, chatId was:", chatId);
+      window.removeEventListener(
+        "chat-send-message",
+        handleChatMessage as EventListener,
+      );
+    };
+  }, [chatId, handleSendMessage]);
 
-  // Show loading state while loading conversation or messages, but only if we don't have any chat messages yet
-  // This allows new conversations to show immediately while they're being created
-  if (
+  // Check if we're loading messages for a specific chat
+  const isLoadingChatContent =
     chatId &&
     (isLoadingConversation || isLoadingMessages) &&
-    chatMessages.length === 0
-  ) {
-    return (
-      <div className={cn("flex h-full items-center justify-center", className)}>
-        <div className="text-center">
-          <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"></div>
-          <p className="text-muted-foreground mt-2 text-sm">
-            Loading conversation...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show welcome state immediately if no chatId AND no messages have been sent yet
-  if (!chatId && chatMessages.length === 0) {
-    return (
-      <div className={cn("relative flex h-full flex-col", className)}>
-        <div className="flex h-16 flex-shrink-0 items-center justify-end border-b px-4">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={handleSettings}>
-              <Settings className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleShare}>
-              <Share className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex flex-1 flex-col items-center justify-center p-8 pb-32">
-          <div className="w-full max-w-2xl text-center">
-            <h1 className="text-foreground mb-8 text-3xl font-semibold">
-              How can I help you today?
-            </h1>
-
-            {/* Category buttons */}
-            <div className="mb-12 flex flex-wrap justify-center gap-3">
-              <Button
-                variant={selectedCategory === "create" ? "default" : "outline"}
-                className="flex items-center gap-2 px-4 py-2"
-                onClick={() =>
-                  setSelectedCategory(
-                    selectedCategory === "create" ? "default" : "create",
-                  )
-                }
-              >
-                <span className="text-lg">⚡</span>
-                Create
-              </Button>
-              <Button
-                variant={selectedCategory === "explore" ? "default" : "outline"}
-                className="flex items-center gap-2 px-4 py-2"
-                onClick={() =>
-                  setSelectedCategory(
-                    selectedCategory === "explore" ? "default" : "explore",
-                  )
-                }
-              >
-                <span className="text-lg">📚</span>
-                Explore
-              </Button>
-              <Button
-                variant={selectedCategory === "code" ? "default" : "outline"}
-                className="flex items-center gap-2 px-4 py-2"
-                onClick={() =>
-                  setSelectedCategory(
-                    selectedCategory === "code" ? "default" : "code",
-                  )
-                }
-              >
-                <span className="text-lg">💻</span>
-                Code
-              </Button>
-              <Button
-                variant={selectedCategory === "learn" ? "default" : "outline"}
-                className="flex items-center gap-2 px-4 py-2"
-                onClick={() =>
-                  setSelectedCategory(
-                    selectedCategory === "learn" ? "default" : "learn",
-                  )
-                }
-              >
-                <span className="text-lg">🎓</span>
-                Learn
-              </Button>
-            </div>
-
-            {/* Suggested prompts */}
-            <div className="space-y-3">
-              {categoryPrompts[selectedCategory].map((prompt) => (
-                <Button
-                  key={prompt}
-                  variant="ghost"
-                  className="text-muted-foreground hover:text-foreground w-full justify-start text-left"
-                  onClick={() => handleSendMessage(prompt)}
-                >
-                  {prompt}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Input at bottom */}
-        <div className="absolute right-0 bottom-0 left-0 z-10">
-          <ChatInput
-            onSendMessage={handleSendMessage}
-            placeholder="Type your message here..."
-            disabled={!userId || isLoading}
-            selectedModel={selectedModel}
-            onModelChange={setSelectedModel}
-          />
-        </div>
-      </div>
-    );
-  }
+    chatMessages.length === 0;
 
   return (
-    <div className={cn("relative flex h-full flex-col", className)}>
-      {/* Header */}
-      <div className="flex h-16 flex-shrink-0 items-center justify-end border-b px-4">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={handleSettings}>
-            <Settings className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={handleShare}>
-            <Share className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="sm">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-x-hidden overflow-y-auto">
-        <div className="space-y-4 p-4 pb-40">
-          {displayMessages.map((message, index) => {
-            // Handle both store messages and useChat messages
-            const isStoreMessage = "created_at" in message;
-
-            return (
-              <MessageComponent
-                key={message.id}
-                message={{
-                  id: message.id,
-                  conversation_id: chatId || "",
-                  role: message.role as "user" | "assistant" | "system",
-                  content: message.content,
-                  created_at: isStoreMessage
-                    ? message.created_at
-                    : new Date().toISOString(),
-                  metadata: isStoreMessage ? message.metadata : null,
-                  parent_id: isStoreMessage ? message.parent_id : null,
-                  is_active: isStoreMessage ? message.is_active : true,
-                  attachments: isStoreMessage ? message.attachments : null,
-                }}
-                isStreaming={isLoading && index === displayMessages.length - 1}
-              />
-            );
-          })}
-          <div ref={messagesEndRef} />
-        </div>
-      </div>
-
-      {/* Input */}
-      <div className="absolute right-0 bottom-0 left-0 z-10">
-        <ChatInput
+    <div className={cn("flex h-full flex-col", className)}>
+      {/* Show welcome screen for new chats */}
+      {!chatId && chatMessages.length === 0 ? (
+        <ChatWelcome
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          categoryPrompts={categoryPrompts}
           onSendMessage={handleSendMessage}
-          onStopStreaming={handleStopStreaming}
-          isStreaming={isLoading}
-          disabled={!userId || isLoading}
-          selectedModel={selectedModel}
-          onModelChange={setSelectedModel}
         />
-      </div>
+      ) : (
+        <ChatMessages
+          displayMessages={displayMessages}
+          chatId={chatId}
+          isLoading={Boolean(isLoadingChatContent)}
+          isStreaming={Boolean(isLoading)}
+          messagesEndRef={messagesEndRef}
+        />
+      )}
 
       {/* Error display */}
       {error && (
