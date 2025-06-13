@@ -109,13 +109,20 @@ export function ChatInterface({
       max_tokens: 2048,
       conversationId: currentConversationId,
     },
+    // onResponse: async (response) => {
+    //   console.log("Response received:", response);
+    //   if (userId && currentConversationId && response.ok) {
+    //     // Update conversations cache immediately when API confirms message was saved
+    //     mutate(`conversations-${userId}`);
+    //   }
+    // },
+
     onFinish: async (message) => {
       console.log("Message finished:", message);
 
       if (userId && currentConversationId) {
-        // Just revalidate silently - the keepPreviousData option will prevent flash
-
-        mutate(`conversations-${userId}`);
+        // Only revalidate messages when AI response is complete
+        // Don't revalidate conversations - our optimistic update should be enough
         mutate(`messages-${currentConversationId}`);
       }
     },
@@ -264,11 +271,37 @@ export function ChatInterface({
           // Don't immediately revalidate - let the onFinish callback handle it
           // This prevents the optimistic update from being overwritten too quickly
         } else {
-          // For existing chats, just send the message normally
-          await append({
-            role: "user",
-            content: messageContent,
-          });
+          // For existing chats, send the message and update cache immediately
+          // Don't await append() - let it run in background while we update cache
+
+          // Optimistically update the conversation timestamp and sort
+          if (currentConversationId) {
+            const updatedConversations = allConversations
+              .map((conv) =>
+                conv.id === currentConversationId
+                  ? { ...conv, updated_at: new Date().toISOString() }
+                  : conv,
+              )
+              .sort(
+                (a, b) =>
+                  new Date(b.updated_at).getTime() -
+                  new Date(a.updated_at).getTime(),
+              );
+
+            mutate(
+              `conversations-${userId}`,
+              append({
+                role: "user",
+                content: messageContent,
+              }),
+              {
+                revalidate: true,
+                optimisticData: updatedConversations,
+                populateCache: false,
+                rollbackOnError: true,
+              },
+            );
+          }
         }
       } catch (error) {
         console.error("Error sending message:", error);
