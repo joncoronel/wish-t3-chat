@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Settings, Share, Plus, Search } from "lucide-react";
+import { Settings, Share, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { useChatUrl } from "@/hooks/use-chat-url";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { signOut } from "@/lib/auth/actions";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import type { User } from "@supabase/supabase-js";
 
 interface HeaderProps {
@@ -38,20 +39,9 @@ export function Header({ user }: HeaderProps) {
   };
 
   return (
-    <header className="bg-background flex h-14 items-center justify-between border-b px-4">
+    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 flex h-14 items-center justify-between border-b px-4 backdrop-blur">
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0"
-          onClick={() => {
-            // TODO: Implement sidebar toggle if needed
-            console.log("Sidebar toggle clicked");
-          }}
-        >
-          <Menu className="h-4 w-4" />
-          <span className="sr-only">Toggle sidebar</span>
-        </Button>
+        <SidebarTrigger />
 
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">Wish T3 Chat</h1>

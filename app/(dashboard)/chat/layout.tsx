@@ -19,12 +19,17 @@ export default async function ChatLayout({
       {/* Header - Always visible */}
       <ChatHeader />
 
-      {/* Content Area - This changes based on route */}
-      <div className="flex-1 overflow-hidden">{children}</div>
+      {/* Content Area - This changes based on route with its own scroll */}
+      <div className="min-h-0 flex-1">{children}</div>
 
-      {/* Input - Always visible with floating overlay effect */}
+      {/* Input - Floating overlay at bottom */}
       <div className="absolute right-0 bottom-0 left-0 z-10">
-        <ChatInputWrapper userId={user.id} />
+        {/* Gradient background that avoids custom scrollbar area */}
+        <div className="from-background via-background/95 pointer-events-none absolute inset-0 right-3 bg-gradient-to-t to-transparent pt-6" />
+        {/* Input wrapper with proper pointer events */}
+        <div className="relative">
+          <ChatInputWrapper userId={user.id} />
+        </div>
       </div>
     </div>
   );

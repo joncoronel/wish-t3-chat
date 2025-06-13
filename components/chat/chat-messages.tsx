@@ -1,6 +1,7 @@
 "use client";
 
 import { MessageComponent } from "./message";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Message } from "ai";
 import type { Message as DBMessage } from "@/types";
 
@@ -22,9 +23,9 @@ export function ChatMessages({
   // Show loading state when switching chats
   if (isLoading) {
     return (
-      <div className="flex-1 overflow-x-hidden overflow-y-auto">
+      <ScrollArea className="h-full w-full">
         <div className="flex justify-center">
-          <div className="w-full max-w-4xl space-y-4 p-4 pb-8">
+          <div className="w-full max-w-4xl space-y-4 p-4 pb-32">
             {/* Skeleton messages for loading state */}
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex gap-3 py-4">
@@ -40,12 +41,12 @@ export function ChatMessages({
             ))}
           </div>
         </div>
-      </div>
+      </ScrollArea>
     );
   }
 
   return (
-    <div className="flex-1 overflow-x-hidden overflow-y-auto">
+    <ScrollArea className="h-full w-full">
       <div className="flex justify-center">
         <div className="w-full max-w-4xl space-y-4 p-4 pb-32">
           {displayMessages.map((message, index) => {
@@ -86,6 +87,6 @@ export function ChatMessages({
           <div ref={messagesEndRef} />
         </div>
       </div>
-    </div>
+    </ScrollArea>
   );
 }

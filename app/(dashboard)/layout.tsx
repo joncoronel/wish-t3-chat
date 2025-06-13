@@ -3,7 +3,8 @@ import { SWRConfig } from "swr";
 import { getUser } from "@/lib/auth";
 import { getConversations } from "@/lib/data/conversations";
 import { Header } from "@/components/layout/header";
-import { Sidebar } from "@/components/layout/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 export default async function DashboardLayout({
   children,
@@ -27,14 +28,14 @@ export default async function DashboardLayout({
         },
       }}
     >
-      <div className="flex h-full flex-col">
-        <Header user={user} />
-        <div className="flex flex-1 overflow-hidden">
-          <Sidebar userId={user.id} />
-          <main className="flex flex-1 flex-col overflow-hidden">
-            {children}
-          </main>
-        </div>
+      <div className="flex h-screen">
+        <SidebarProvider>
+          <AppSidebar userId={user.id} />
+          <SidebarInset className="flex flex-col overflow-clip">
+            <Header user={user} />
+            <main className="flex-1 overflow-hidden">{children}</main>
+          </SidebarInset>
+        </SidebarProvider>
       </div>
     </SWRConfig>
   );

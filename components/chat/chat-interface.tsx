@@ -369,13 +369,15 @@ export function ChatInterface({
           onSendMessage={handleSendMessage}
         />
       ) : (
-        <ChatMessages
-          displayMessages={displayMessages}
-          chatId={chatId}
-          isLoading={Boolean(isLoadingChatContent)}
-          isStreaming={Boolean(isLoading)}
-          messagesEndRef={messagesEndRef}
-        />
+        <div className="min-h-0 flex-1">
+          <ChatMessages
+            displayMessages={displayMessages}
+            chatId={chatId}
+            isLoading={Boolean(isLoadingChatContent)}
+            isStreaming={Boolean(isLoading)}
+            messagesEndRef={messagesEndRef}
+          />
+        </div>
       )}
 
       {/* Error display */}

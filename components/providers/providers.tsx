@@ -3,6 +3,7 @@
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+
 import type { ReactNode } from "react";
 
 interface ProvidersProps {
