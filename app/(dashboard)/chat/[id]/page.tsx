@@ -18,24 +18,28 @@ export default async function ChatPage({ params }: ChatPageProps) {
     redirect("/auth/login");
   }
 
-  // Fetch conversation and messages on the server
+  // Try to fetch conversation and messages on the server
   const [conversation, messages] = await Promise.all([
     getConversation(id, data.user.id),
     getMessages(id),
   ]);
 
-  // If conversation doesn't exist or doesn't belong to user, redirect
-  if (!conversation) {
-    redirect("/chat");
+  // For new conversations that don't exist yet, let the client handle it
+  // Only redirect if there's a real error (not just missing conversation)
+  const fallbackData: Record<string, unknown> = {};
+
+  if (conversation) {
+    fallbackData[`conversation-${id}-${data.user.id}`] = conversation;
+  }
+
+  if (messages) {
+    fallbackData[`messages-${id}`] = messages;
   }
 
   return (
     <SWRConfig
       value={{
-        fallback: {
-          [`conversation-${id}-${data.user.id}`]: conversation,
-          [`messages-${id}`]: messages,
-        },
+        fallback: fallbackData,
       }}
     >
       <ChatInterface chatId={id} userId={data.user.id} className="h-full" />

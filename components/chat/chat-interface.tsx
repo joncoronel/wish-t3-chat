@@ -4,14 +4,30 @@ import { useEffect, useRef, useState } from "react";
 import { useChat } from "ai/react";
 import { useConversation, useMessages } from "@/hooks/use-conversations";
 import { useChatUrl } from "@/hooks/use-chat-url";
+import { createClient } from "@/lib/supabase/client";
 import { MessageComponent } from "./message";
 import { ChatInput } from "./chat-input";
+
+// Fetch conversations function for optimistic updates
+async function fetchConversations(userId: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("conversations")
+    .select("*")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
 import { Button } from "@/components/ui/button";
 
 import { Share, Settings, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { mutate } from "swr";
+import { v4 as uuidv4 } from "uuid";
+import type { Conversation } from "@/types";
 
 interface ChatInterfaceProps {
   className?: string;
@@ -26,10 +42,26 @@ export function ChatInterface({
 }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { navigateToChat } = useChatUrl();
+
+  // Debug component lifecycle
+  useEffect(() => {
+    console.log("ChatInterface mounted with chatId:", chatId);
+    return () => {
+      console.log("ChatInterface unmounting, chatId was:", chatId);
+    };
+  }, [chatId]);
   const [selectedCategory, setSelectedCategory] = useState<
     keyof typeof categoryPrompts | "default"
   >("default");
   const [selectedModel, setSelectedModel] = useState<string>("gpt-4");
+
+  // Track the active conversation ID for new chats
+  const [activeConversationId, setActiveConversationId] = useState<
+    string | null
+  >(null);
+
+  // Current conversation ID for this chat session
+  const currentConversationId = chatId || activeConversationId;
 
   // Define prompts for each category
   const categoryPrompts = {
@@ -80,39 +112,42 @@ export function ChatInterface({
     stop,
   } = useChat({
     api: "/api/chat",
+    id: currentConversationId || "temp",
     body: {
-      model: "gpt-4", // TODO: Get from user settings
+      model: selectedModel,
       temperature: 0.7,
       max_tokens: 2048,
-      conversationId: chatId,
+      conversationId: currentConversationId,
     },
     onFinish: async (message) => {
       console.log("Message finished:", message);
 
-      if (userId) {
-        // Always update the conversations cache to refresh the sidebar (for updated timestamps)
-        mutate(`conversations-${userId}`, undefined, { revalidate: false });
+      if (userId && currentConversationId) {
+        // Update the specific conversation's timestamp optimistically to avoid flash
+        mutate(
+          `conversations-${userId}`,
+          (currentConversations: Conversation[] = []) => {
+            console.log("Updating conversation timestamp after AI response");
+            return currentConversations.map((conv) =>
+              conv.id === currentConversationId
+                ? { ...conv, updated_at: new Date().toISOString() }
+                : conv,
+            );
+          },
+          {
+            revalidate: false, // Don't revalidate immediately to prevent flash
+            populateCache: true, // Keep the optimistic data
+          },
+        );
 
-        // If this was a new conversation (no chatId), we need to check if a conversation was created
-        // The API will have created a conversation, so let's refresh the conversations and navigate
-        if (!chatId) {
-          // Wait a moment for the database to be updated, then fetch conversations
-          setTimeout(async () => {
-            // Trigger a refetch of conversations
-            const conversations = await mutate(`conversations-${userId}`);
-            if (conversations && conversations.length > 0) {
-              // Navigate to the most recent conversation (first in the list due to ordering)
-              const latestConversation = conversations[0];
-              console.log(
-                "Navigating to new conversation:",
-                latestConversation.id,
-              );
-              navigateToChat(latestConversation.id);
-            }
-          }, 100); // Reduced timeout for faster navigation
-        }
-        // For existing chats, don't force a refetch - let SWR handle it naturally
-        // The messages will be updated through the normal SWR revalidation cycle
+        // Do a silent background revalidation to sync with server
+        // This will merge with our optimistic data without causing visual flash
+        mutate(`conversations-${userId}`);
+
+        // Refresh messages cache for the current conversation
+        mutate(`messages-${currentConversationId}`, undefined, {
+          revalidate: true,
+        });
       }
     },
     onError: (error) => {
@@ -126,30 +161,47 @@ export function ChatInterface({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, chatMessages]);
 
+  // Log when chatMessages change to track when they disappear
+  useEffect(() => {
+    console.log("ChatMessages changed:", {
+      count: chatMessages.length,
+      currentConversationId,
+      chatId,
+      activeConversationId,
+      messages: chatMessages.map((m) => ({
+        role: m.role,
+        content: m.content.slice(0, 30),
+      })),
+    });
+  }, [chatMessages, currentConversationId, chatId, activeConversationId]);
+
   // Combined messages for display
-  const displayMessages = conversation
-    ? [
-        ...messages, // All messages from database
-        // Add any new messages from useChat that aren't saved yet
-        ...chatMessages.filter((chatMsg) => {
-          // Show user messages immediately (they won't be in DB yet)
-          if (chatMsg.role === "user") {
-            return !messages.some(
-              (dbMsg) =>
-                dbMsg.role === "user" && dbMsg.content === chatMsg.content,
-            );
-          }
-          // Show assistant messages while streaming or if not in DB yet
-          if (chatMsg.role === "assistant") {
-            return !messages.some(
-              (dbMsg) =>
-                dbMsg.role === "assistant" && dbMsg.content === chatMsg.content,
-            );
-          }
-          return false;
-        }),
-      ]
-    : chatMessages;
+  // Prioritize live messages from useChat over database messages for better real-time experience
+  const displayMessages =
+    chatMessages.length > 0
+      ? chatMessages // Show live streaming messages when available
+      : messages; // Fall back to database messages when no live messages
+
+  // Debug logging for troubleshooting
+  console.log("Chat state debug:", {
+    chatId,
+    activeConversationId,
+    currentConversationId,
+    conversation: !!conversation,
+    messagesFromDB: messages.length,
+    chatMessages: chatMessages.length,
+    displayMessages: displayMessages.length,
+    isLoadingConversation,
+    isLoadingMessages,
+    messagesDetails: messages.map((m) => ({
+      role: m.role,
+      content: m.content.slice(0, 50),
+    })),
+    chatMessagesDetails: chatMessages.map((m) => ({
+      role: m.role,
+      content: m.content.slice(0, 50),
+    })),
+  });
 
   const handleSendMessage = async (messageContent: string) => {
     if (!userId) {
@@ -160,11 +212,102 @@ export function ChatInterface({
     console.log("Sending message:", messageContent);
 
     try {
-      // Use the useChat hook's append method to send messages
-      await append({
-        role: "user",
-        content: messageContent,
-      });
+      // If this is a new chat (no chatId), generate conversation ID but don't navigate yet
+      if (!chatId) {
+        console.log("Starting new conversation...");
+
+        const conversationId = uuidv4();
+
+        // Set the active conversation ID for the useChat hook
+        setActiveConversationId(conversationId);
+
+        // Optimistically add the conversation to the sidebar immediately
+        const optimisticConversation = {
+          id: conversationId,
+          user_id: userId,
+          title:
+            messageContent.slice(0, 50) +
+            (messageContent.length > 50 ? "..." : ""),
+          model: selectedModel,
+          system_prompt: null,
+          is_shared: false,
+          share_token: null,
+          folder_id: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        // Optimistically update the conversations cache
+        mutate(
+          `conversations-${userId}`,
+          async (
+            currentConversations: Array<typeof optimisticConversation> = [],
+          ) => {
+            console.log(
+              "Optimistic update - current conversations:",
+              currentConversations.length,
+              currentConversations.map((c) => ({
+                id: c.id,
+                title: c.title.slice(0, 30),
+              })),
+            );
+
+            // If we don't have current conversations in cache, fetch them first
+            if (currentConversations.length === 0) {
+              console.log("No conversations in cache, fetching fresh data...");
+              try {
+                const freshConversations = await fetchConversations(userId);
+                console.log(
+                  "Fetched fresh conversations:",
+                  freshConversations.length,
+                );
+                const newList = [optimisticConversation, ...freshConversations];
+                console.log("Merged with fresh data, total:", newList.length);
+                return newList;
+              } catch (error) {
+                console.error("Failed to fetch fresh conversations:", error);
+                // Fall back to just the optimistic conversation
+                return [optimisticConversation];
+              }
+            }
+
+            // Only add if this conversation doesn't already exist
+            const existingIndex = currentConversations.findIndex(
+              (conv) => conv.id === conversationId,
+            );
+            if (existingIndex === -1) {
+              const newList = [optimisticConversation, ...currentConversations];
+              console.log(
+                "Adding new conversation, total:",
+                newList.length,
+                newList.map((c) => ({ id: c.id, title: c.title.slice(0, 30) })),
+              );
+              return newList;
+            }
+            console.log("Conversation already exists, keeping current list");
+            return currentConversations;
+          },
+          false, // Don't revalidate immediately
+        );
+
+        // Navigate immediately to show the URL change
+        navigateToChat(conversationId);
+
+        // Send the message - the API will create the conversation if it doesn't exist
+        await append({
+          role: "user",
+          content: messageContent,
+        });
+
+        // Don't immediately revalidate - let the onFinish callback handle it
+        // This prevents the optimistic update from being overwritten too quickly
+      } else {
+        // For existing chats, just send the message normally
+        await append({
+          role: "user",
+          content: messageContent,
+        });
+      }
     } catch (error) {
       console.error("Error sending message:", error);
       toast.error("Failed to send message");
@@ -183,8 +326,13 @@ export function ChatInterface({
     toast.info("Settings panel coming soon!");
   };
 
-  // Show loading state while loading conversation or messages (only if we have a chatId)
-  if (chatId && (isLoadingConversation || isLoadingMessages)) {
+  // Show loading state while loading conversation or messages, but only if we don't have any chat messages yet
+  // This allows new conversations to show immediately while they're being created
+  if (
+    chatId &&
+    (isLoadingConversation || isLoadingMessages) &&
+    chatMessages.length === 0
+  ) {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
         <div className="text-center">

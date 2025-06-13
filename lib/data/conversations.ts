@@ -34,7 +34,11 @@ export async function getConversation(
     .single();
 
   if (error) {
-    console.error("Error fetching conversation:", error);
+    // Only log errors that are not "no rows returned" (PGRST116)
+    // This is expected for new conversations that don't exist yet
+    if (error.code !== "PGRST116") {
+      console.error("Error fetching conversation:", error);
+    }
     return null;
   }
 
@@ -51,6 +55,8 @@ export async function getMessages(conversationId: string): Promise<Message[]> {
     .order("created_at", { ascending: true });
 
   if (error) {
+    // Only log errors that are not related to missing conversations
+    // For new conversations, it's normal to have no messages initially
     console.error("Error fetching messages:", error);
     return [];
   }
