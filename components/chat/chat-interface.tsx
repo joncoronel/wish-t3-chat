@@ -16,7 +16,6 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { mutate } from "swr";
 import { v4 as uuidv4 } from "uuid";
-import type { Conversation } from "@/types";
 
 interface ChatInterfaceProps {
   className?: string;
@@ -114,31 +113,10 @@ export function ChatInterface({
       console.log("Message finished:", message);
 
       if (userId && currentConversationId) {
-        // Update the specific conversation's timestamp optimistically to avoid flash
-        mutate(
-          `conversations-${userId}`,
-          (currentConversations: Conversation[] = []) => {
-            console.log("Updating conversation timestamp after AI response");
-            return currentConversations.map((conv) =>
-              conv.id === currentConversationId
-                ? { ...conv, updated_at: new Date().toISOString() }
-                : conv,
-            );
-          },
-          {
-            revalidate: false, // Don't revalidate immediately to prevent flash
-            populateCache: true, // Keep the optimistic data
-          },
-        );
+        // Just revalidate silently - the keepPreviousData option will prevent flash
 
-        // Do a silent background revalidation to sync with server
-        // This will merge with our optimistic data without causing visual flash
         mutate(`conversations-${userId}`);
-
-        // Refresh messages cache for the current conversation
-        mutate(`messages-${currentConversationId}`, undefined, {
-          revalidate: true,
-        });
+        mutate(`messages-${currentConversationId}`);
       }
     },
     onError: (error) => {
