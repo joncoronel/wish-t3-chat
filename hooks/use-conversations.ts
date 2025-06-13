@@ -122,28 +122,45 @@ export async function createMessage(
 export async function deleteConversation(
   conversationId: string,
   userId: string,
+  currentConversations?: Conversation[],
 ): Promise<void> {
   const supabase = createClient();
 
-  const { error } = await supabase
-    .from("conversations")
-    .delete()
-    .eq("id", conversationId)
-    .eq("user_id", userId);
+  // Delete function for the actual database operation
+  const deleteFunction = async () => {
+    const { error } = await supabase
+      .from("conversations")
+      .delete()
+      .eq("id", conversationId)
+      .eq("user_id", userId);
 
-  if (error) {
-    console.error("Error deleting conversation:", error);
+    if (error) {
+      console.error("Error deleting conversation:", error);
+      throw error;
+    }
+    return null;
+  };
+
+  try {
+    // Use mutate with optimistic updates using provided cached data
+    await mutate(`conversations-${userId}`, deleteFunction(), {
+      populateCache: false,
+      revalidate: true,
+      optimisticData:
+        currentConversations?.filter((conv) => conv.id !== conversationId) ||
+        [],
+      rollbackOnError: true,
+    });
+
+    // Clear the conversation and messages cache
+    mutate(`conversation-${conversationId}-${userId}`, null, {
+      revalidate: false,
+    });
+    mutate(`messages-${conversationId}`, [], { revalidate: false });
+  } catch (error) {
+    console.error("Delete failed:", error);
     throw error;
   }
-
-  // Update the conversations cache
-  mutate(`conversations-${userId}`);
-
-  // Clear the conversation and messages cache
-  mutate(`conversation-${conversationId}-${userId}`, null, {
-    revalidate: false,
-  });
-  mutate(`messages-${conversationId}`, [], { revalidate: false });
 }
 
 // SWR Hooks

@@ -14,7 +14,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { deleteConversation } from "@/hooks/use-conversations";
+import {
+  useConversations,
+  deleteConversation,
+} from "@/hooks/use-conversations";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -42,10 +45,13 @@ export function DeleteConversationDialog({
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
+  // Get cached conversations data
+  const { data: conversations } = useConversations(userId);
+
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await deleteConversation(conversationId, userId);
+      await deleteConversation(conversationId, userId, conversations);
 
       // If we're currently viewing the deleted conversation, redirect to chat page
       if (currentChatId === conversationId) {
