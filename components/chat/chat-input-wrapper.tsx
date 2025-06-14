@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { ChatInput } from "./chat-input";
 import { useChatUrl } from "@/hooks/use-chat-url";
+import { useChatLoading } from "@/hooks/use-chat-loading";
 import { useConversations } from "@/hooks/use-conversations";
+import { generateConversationTitle } from "@/lib/utils";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { v4 as uuidv4 } from "uuid";
@@ -26,6 +28,7 @@ export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
   const params = useParams();
   const chatId = params?.id as string | undefined;
   const { navigateToChat } = useChatUrl();
+  const { setLoading } = useChatLoading();
   const [selectedModel, setSelectedModel] = useState<string>("gpt-4");
 
   // Get current conversations for optimistic updates
@@ -50,9 +53,7 @@ export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
         const optimisticConversation: Conversation = {
           id: conversationId,
           user_id: userId,
-          title:
-            messageContent.slice(0, 50) +
-            (messageContent.length > 50 ? "..." : ""),
+          title: generateConversationTitle(messageContent),
           model: selectedModel,
           system_prompt: null,
           is_shared: false,
@@ -68,6 +69,9 @@ export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
           [optimisticConversation, ...allConversations],
           false, // Don't revalidate immediately
         );
+
+        // Set loading state for new conversation
+        setLoading(conversationId, true);
 
         // Navigate to new conversation with the initial message
         navigateToChat(conversationId);

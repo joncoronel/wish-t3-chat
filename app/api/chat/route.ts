@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { streamText, convertToCoreMessages } from "ai";
 import { getLanguageModel } from "@/lib/ai";
 import { createClient } from "@/lib/supabase/server";
+import { generateConversationTitle } from "@/lib/utils";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 
@@ -102,8 +103,7 @@ export async function POST(req: NextRequest) {
         (msg) => msg.role === "user",
       );
       const title = firstUserMessage
-        ? firstUserMessage.content.split(" ").slice(0, 6).join(" ") +
-          (firstUserMessage.content.split(" ").length > 6 ? "..." : "")
+        ? generateConversationTitle(firstUserMessage.content)
         : "New Conversation";
 
       // Create conversation if it doesn't exist

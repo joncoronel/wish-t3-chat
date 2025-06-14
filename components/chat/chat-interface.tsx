@@ -9,11 +9,12 @@ import {
   useConversations,
 } from "@/hooks/use-conversations";
 import { useChatUrl } from "@/hooks/use-chat-url";
+import { useChatLoading } from "@/hooks/use-chat-loading";
 import { ChatWelcome } from "./chat-welcome";
 import { ChatMessages } from "./chat-messages";
 
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, generateConversationTitle } from "@/lib/utils";
 import { mutate } from "swr";
 import { v4 as uuidv4 } from "uuid";
 
@@ -30,6 +31,7 @@ export function ChatInterface({
 }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { navigateToChat } = useChatUrl();
+  const { setLoading } = useChatLoading();
 
   // Debug component lifecycle - will be added after handleSendMessage
 
@@ -121,6 +123,9 @@ export function ChatInterface({
       console.log("Message finished:", message);
 
       if (userId && currentConversationId) {
+        // Clear loading state when AI response is complete
+        setLoading(currentConversationId, false);
+
         // Only revalidate messages when AI response is complete
         // Don't revalidate conversations - our optimistic update should be enough
         mutate(`messages-${currentConversationId}`);
@@ -129,6 +134,11 @@ export function ChatInterface({
     onError: (error) => {
       console.error("Chat error:", error);
       toast.error("Failed to send message: " + error.message);
+
+      // Clear loading state on error
+      if (currentConversationId) {
+        setLoading(currentConversationId, false);
+      }
     },
   });
 
@@ -219,6 +229,9 @@ export function ChatInterface({
             if (urlConversationId && urlConversationId !== "chat") {
               setActiveConversationId(urlConversationId);
 
+              // Set loading state for pending message
+              setLoading(urlConversationId, true);
+
               // Send the message - the API will create the conversation if it doesn't exist
               await append({
                 role: "user",
@@ -234,13 +247,14 @@ export function ChatInterface({
           // Set the active conversation ID for the useChat hook
           setActiveConversationId(conversationId);
 
+          // Set loading state for new conversation
+          setLoading(conversationId, true);
+
           // Optimistically add the conversation to the sidebar immediately
           const optimisticConversation = {
             id: conversationId,
             user_id: userId,
-            title:
-              messageContent.slice(0, 50) +
-              (messageContent.length > 50 ? "..." : ""),
+            title: generateConversationTitle(messageContent),
             model: "gpt-4",
             system_prompt: null,
             is_shared: false,
@@ -272,7 +286,10 @@ export function ChatInterface({
           // This prevents the optimistic update from being overwritten too quickly
         } else {
           // For existing chats, send the message and update cache immediately
-          // Don't await append() - let it run in background while we update cache
+          // Set loading state when sending message
+          if (currentConversationId) {
+            setLoading(currentConversationId, true);
+          }
 
           // Optimistically update the conversation timestamp and sort
           if (currentConversationId) {
