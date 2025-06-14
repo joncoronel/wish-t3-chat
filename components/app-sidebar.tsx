@@ -11,6 +11,7 @@ import {
 } from "@/hooks/use-conversations";
 import { Badge } from "@/components/ui/badge";
 import { NewChatButton } from "@/components/chat/new-chat-button";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,6 +62,43 @@ export function AppSidebar({ userId }: AppSidebarProps) {
       conversation.model.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
+  // Group conversations by date
+  const groupedConversations = filteredConversations.reduce(
+    (groups, conversation) => {
+      const date = new Date(conversation.updated_at);
+      const now = new Date();
+      const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+
+      let groupKey: string;
+      if (diffInHours < 24) {
+        groupKey = "Today";
+      } else if (diffInHours < 48) {
+        groupKey = "Yesterday";
+      } else if (diffInHours < 168) {
+        // 7 days
+        groupKey = "This Week";
+      } else if (diffInHours < 720) {
+        // 30 days
+        groupKey = "This Month";
+      } else {
+        groupKey = "Older";
+      }
+
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(conversation);
+      return groups;
+    },
+    {} as Record<string, typeof conversations>,
+  );
+
+  // Sort groups by priority
+  const groupOrder = ["Today", "Yesterday", "This Week", "This Month", "Older"];
+  const sortedGroups = groupOrder.filter(
+    (group) => groupedConversations[group]?.length > 0,
+  );
+
   const handleConversationClick = (conversationId: string) => {
     navigateToChat(conversationId);
   };
@@ -84,27 +122,6 @@ export function AppSidebar({ userId }: AppSidebarProps) {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInMinutes = diffInMs / (1000 * 60);
-    const diffInHours = diffInMs / (1000 * 60 * 60);
-    const diffInDays = diffInHours / 24;
-
-    if (diffInMinutes < 1) {
-      return "Just now";
-    } else if (diffInMinutes < 60) {
-      return `${Math.floor(diffInMinutes)}m ago`;
-    } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}h ago`;
-    } else if (diffInDays < 7) {
-      return `${Math.floor(diffInDays)}d ago`;
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
-
   return (
     <Sidebar variant="inset">
       <SidebarHeader>
@@ -115,8 +132,8 @@ export function AppSidebar({ userId }: AppSidebarProps) {
         />
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
+      <SidebarContent className="flex flex-col overflow-hidden">
+        <SidebarGroup className="flex-shrink-0">
           <SidebarGroupLabel>Search</SidebarGroupLabel>
           <SidebarGroupContent>
             <div className="relative">
@@ -131,89 +148,111 @@ export function AppSidebar({ userId }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Conversations</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {filteredConversations.length === 0 ? (
-                <div className="text-muted-foreground py-8 text-center">
-                  <MessageSquare className="mx-auto mb-2 h-8 w-8 opacity-50" />
-                  <p className="text-sm">No conversations yet</p>
-                  <p className="text-xs">Start a new chat to get going</p>
-                </div>
-              ) : (
-                filteredConversations.map((conversation) => (
-                  <SidebarMenuItem key={conversation.id}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={currentChatId === conversation.id}
-                      className="h-auto p-3"
-                    >
-                      <Link
-                        href={`/chat/${conversation.id}`}
-                        onMouseDown={() =>
-                          handleConversationClick(conversation.id)
-                        }
-                      >
-                        <div className="flex w-full min-w-0 flex-col gap-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="truncate text-sm font-medium">
-                              {conversation.title || "Untitled Chat"}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground text-xs">
-                              {formatDate(conversation.updated_at)}
-                            </span>
-                            {conversation.is_shared && (
-                              <Badge variant="secondary" className="text-xs">
-                                Shared
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </Link>
-                    </SidebarMenuButton>
-                    <AlertDialog>
-                      <SidebarMenuAction showOnHover asChild>
-                        <AlertDialogTrigger>
-                          <Trash2 className="h-4 w-4" />
-                        </AlertDialogTrigger>
-                      </SidebarMenuAction>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            Delete Conversation
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete &ldquo;
-                            {conversation.title || "Untitled Chat"}&rdquo;? This
-                            action cannot be undone and will permanently remove
-                            the conversation and all its messages.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel
-                            disabled={deletingId === conversation.id}
-                          >
-                            Cancel
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(conversation.id)}
-                            disabled={deletingId === conversation.id}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            {deletingId === conversation.id
-                              ? "Deleting..."
-                              : "Delete"}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </SidebarMenuItem>
-                ))
-              )}
-            </SidebarMenu>
+        <SidebarGroup className="min-h-0 flex-1 p-0">
+          <SidebarGroupLabel className="px-2 py-2">
+            Conversations
+          </SidebarGroupLabel>
+          <SidebarGroupContent className="min-h-0 flex-1 p-0">
+            <ScrollArea
+              className="h-full"
+              hideScrollbar={true}
+              style={{
+                maskImage:
+                  "linear-gradient(to bottom, transparent, #000 20px, #000 calc(100% - 20px), transparent 100%)",
+                WebkitMaskImage:
+                  "linear-gradient(to bottom, transparent, #000 20px, #000 calc(100% - 20px), transparent 100%)",
+              }}
+            >
+              <div className="p-2 pr-4">
+                {filteredConversations.length === 0 ? (
+                  <div className="text-muted-foreground py-8 text-center">
+                    <MessageSquare className="mx-auto mb-2 h-8 w-8 opacity-50" />
+                    <p className="text-sm">No conversations yet</p>
+                    <p className="text-xs">Start a new chat to get going</p>
+                  </div>
+                ) : (
+                  sortedGroups.map((groupName) => (
+                    <div key={groupName} className="mb-2">
+                      <div className="text-muted-foreground p-2 text-xs font-medium">
+                        {groupName}
+                      </div>
+                      <SidebarMenu>
+                        {groupedConversations[groupName].map((conversation) => (
+                          <SidebarMenuItem key={conversation.id}>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={currentChatId === conversation.id}
+                              className="h-auto p-3"
+                            >
+                              <Link
+                                href={`/chat/${conversation.id}`}
+                                onMouseDown={() =>
+                                  handleConversationClick(conversation.id)
+                                }
+                              >
+                                <div className="flex w-full min-w-0 items-center justify-between gap-2">
+                                  <span className="truncate text-sm font-medium">
+                                    {conversation.title || "Untitled Chat"}
+                                  </span>
+                                  {conversation.is_shared && (
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-xs"
+                                    >
+                                      Shared
+                                    </Badge>
+                                  )}
+                                </div>
+                              </Link>
+                            </SidebarMenuButton>
+                            <AlertDialog>
+                              <SidebarMenuAction showOnHover asChild>
+                                <AlertDialogTrigger>
+                                  <Trash2 className="h-4 w-4" />
+                                </AlertDialogTrigger>
+                              </SidebarMenuAction>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Delete Conversation
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete &ldquo;
+                                    {conversation.title || "Untitled Chat"}
+                                    &rdquo;? This action cannot be undone and
+                                    will permanently remove the conversation and
+                                    all its messages.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel
+                                    disabled={deletingId === conversation.id}
+                                  >
+                                    Cancel
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() =>
+                                      handleDelete(conversation.id)
+                                    }
+                                    disabled={deletingId === conversation.id}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    {deletingId === conversation.id
+                                      ? "Deleting..."
+                                      : "Delete"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </div>
+                  ))
+                )}
+              </div>
+              <ScrollBar className="w-2" />
+            </ScrollArea>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
