@@ -67,18 +67,26 @@ export function AppSidebar({ userId }: AppSidebarProps) {
     (groups, conversation) => {
       const date = new Date(conversation.updated_at);
       const now = new Date();
-      const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+
+      // Get start of today (midnight)
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      // Get start of yesterday
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      // Get start of this week (assuming week starts on Sunday)
+      const thisWeekStart = new Date(today);
+      thisWeekStart.setDate(today.getDate() - today.getDay());
+      // Get start of this month
+      const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
       let groupKey: string;
-      if (diffInHours < 24) {
+      if (date >= today) {
         groupKey = "Today";
-      } else if (diffInHours < 48) {
+      } else if (date >= yesterday) {
         groupKey = "Yesterday";
-      } else if (diffInHours < 168) {
-        // 7 days
+      } else if (date >= thisWeekStart) {
         groupKey = "This Week";
-      } else if (diffInHours < 720) {
-        // 30 days
+      } else if (date >= thisMonthStart) {
         groupKey = "This Month";
       } else {
         groupKey = "Older";
