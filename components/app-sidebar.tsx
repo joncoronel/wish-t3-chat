@@ -174,7 +174,7 @@ export function AppSidebar({ userId }: AppSidebarProps) {
                     "linear-gradient(to bottom, transparent, #000 20px, #000 calc(100% - 20px), transparent 100%)",
                 }}
               >
-                <div className="w-full min-w-0 overflow-hidden p-2 pr-4">
+                <div className="w-full min-w-0 overflow-hidden p-2">
                   {filteredConversations.length === 0 ? (
                     <div className="text-muted-foreground py-8 text-center">
                       <MessageSquare className="mx-auto mb-2 h-8 w-8 opacity-50" />
@@ -277,7 +277,7 @@ export function AppSidebar({ userId }: AppSidebarProps) {
                     ))
                   )}
                 </div>
-                <ScrollBar className="w-2" />
+                <ScrollBar className="w-1.5 transition-[width] duration-200 ease-out hover:w-2 data-[state=dragging]:w-2" />
               </ScrollArea>
             </div>
           </SidebarGroupContent>
