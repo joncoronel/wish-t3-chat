@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Square, Paperclip } from "lucide-react";
 import { ModelSelector } from "./model-selector";
+import { useGlobalModel } from "@/hooks/use-global-model";
 import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
@@ -14,8 +15,6 @@ interface ChatInputProps {
   disabled?: boolean;
   placeholder?: string;
   className?: string;
-  selectedModel?: string;
-  onModelChange?: (model: string) => void;
 }
 
 export function ChatInput({
@@ -25,11 +24,10 @@ export function ChatInput({
   disabled = false,
   placeholder = "Type your message...",
   className,
-  selectedModel = "gpt-4",
-  onModelChange,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { selectedModel, selectModel } = useGlobalModel();
 
   const handleSubmit = () => {
     const trimmedMessage = message.trim();
@@ -92,7 +90,7 @@ export function ChatInput({
               {/* Model selector */}
               <ModelSelector
                 selectedModel={selectedModel}
-                onModelSelect={onModelChange || (() => {})}
+                onModelSelect={selectModel}
                 disabled={disabled || isStreaming}
                 className="h-8"
               />

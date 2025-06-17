@@ -10,6 +10,7 @@ import {
 } from "@/hooks/use-conversations";
 import { useChatUrl } from "@/hooks/use-chat-url";
 import { useChatLoading } from "@/hooks/use-chat-loading";
+import { useGlobalModel } from "@/hooks/use-global-model";
 import { ChatWelcome } from "./chat-welcome";
 import { ChatMessages } from "./chat-messages";
 
@@ -32,6 +33,7 @@ export function ChatInterface({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { navigateToChat } = useChatUrl();
   const { setLoading } = useChatLoading();
+  const { selectedModel } = useGlobalModel();
 
   // Debug component lifecycle - will be added after handleSendMessage
 
@@ -109,7 +111,7 @@ export function ChatInterface({
       content: msg.content,
     })),
     body: {
-      model: "gpt-4",
+      model: selectedModel,
       temperature: 0.7,
       max_tokens: 2048,
       conversationId: currentConversationId,
@@ -244,7 +246,7 @@ export function ChatInterface({
             id: conversationId,
             user_id: userId,
             title: generateConversationTitle(messageContent),
-            model: "gpt-4",
+            model: selectedModel,
             system_prompt: null,
             is_shared: false,
             share_token: null,

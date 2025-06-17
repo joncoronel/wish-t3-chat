@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { ChatInput } from "./chat-input";
 import { useChatUrl } from "@/hooks/use-chat-url";
 import { useChatLoading } from "@/hooks/use-chat-loading";
 import { useConversations } from "@/hooks/use-conversations";
+import { useGlobalModel } from "@/hooks/use-global-model";
 import { generateConversationTitle } from "@/lib/utils";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -26,7 +26,7 @@ export interface ChatMessageEventDetail {
 export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
   const { chatId, navigateToChat } = useChatUrl();
   const { setLoading } = useChatLoading();
-  const [selectedModel, setSelectedModel] = useState<string>("gpt-4");
+  const { selectedModel } = useGlobalModel();
 
   // Get current conversations for optimistic updates
   const { data: allConversations = [] } = useConversations(userId || "");
@@ -37,7 +37,12 @@ export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
       return;
     }
 
-    console.log("Sending message:", messageContent);
+    console.log(
+      "Sending message:",
+      messageContent,
+      "with model:",
+      selectedModel,
+    );
 
     try {
       // If this is a new chat (no chatId), generate conversation ID and navigate
@@ -94,12 +99,5 @@ export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
     }
   };
 
-  return (
-    <ChatInput
-      onSendMessage={handleSendMessage}
-      disabled={!userId}
-      selectedModel={selectedModel}
-      onModelChange={setSelectedModel}
-    />
-  );
+  return <ChatInput onSendMessage={handleSendMessage} disabled={!userId} />;
 }

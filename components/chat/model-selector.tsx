@@ -16,7 +16,15 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, Zap, Brain, Sparkles, CheckIcon } from "lucide-react";
+import {
+  ChevronDown,
+  Zap,
+  Brain,
+  Sparkles,
+  CheckIcon,
+  Bot,
+  Search,
+} from "lucide-react";
 import { AI_MODELS, type AIModel } from "@/lib/ai";
 import { cn } from "@/lib/utils";
 
@@ -28,9 +36,20 @@ interface ModelSelectorProps {
 }
 
 const MODEL_ICONS = {
+  // OpenAI models
   "gpt-4": Brain,
   "gpt-4-turbo": Sparkles,
   "gpt-3.5-turbo": Zap,
+
+  // Anthropic models
+  "claude-3-5-sonnet-20241022": Bot,
+  "claude-3-5-haiku-20241022": Bot,
+  "claude-3-opus-20240229": Bot,
+
+  // Google models
+  "gemini-1.5-pro": Search,
+  "gemini-1.5-flash": Search,
+  "gemini-2.0-flash-exp": Search,
 } as const;
 
 function getModelIcon(modelId: string) {
@@ -46,7 +65,22 @@ function formatModelName(model: AIModel) {
 function getModelBadgeVariant(modelId: string) {
   if (modelId.includes("gpt-4")) return "default";
   if (modelId.includes("gpt-3.5")) return "secondary";
+  if (modelId.includes("claude")) return "outline";
+  if (modelId.includes("gemini")) return "destructive";
   return "outline";
+}
+
+function getProviderColor(provider: string) {
+  switch (provider.toLowerCase()) {
+    case "openai":
+      return "text-green-600 dark:text-green-400";
+    case "anthropic":
+      return "text-orange-600 dark:text-orange-400";
+    case "google":
+      return "text-blue-600 dark:text-blue-400";
+    default:
+      return "text-gray-600 dark:text-gray-400";
+  }
 }
 
 // Group models by provider
@@ -54,7 +88,8 @@ function groupModelsByProvider(models: AIModel[]) {
   const groups: Record<string, AIModel[]> = {};
 
   models.forEach((model) => {
-    const provider = model.provider.toUpperCase();
+    const provider =
+      model.provider.charAt(0).toUpperCase() + model.provider.slice(1);
     if (!groups[provider]) {
       groups[provider] = [];
     }
@@ -91,7 +126,12 @@ export function ModelSelector({
           disabled={disabled}
         >
           <div className="flex items-center gap-2">
-            <IconComponent className="h-4 w-4" />
+            <IconComponent
+              className={cn(
+                "h-4 w-4",
+                currentModel && getProviderColor(currentModel.provider),
+              )}
+            />
             <span className="text-sm font-medium">
               {currentModel ? formatModelName(currentModel) : selectedModel}
             </span>
@@ -139,7 +179,9 @@ export function ModelSelector({
                           <ModelIcon
                             className={cn(
                               "h-4 w-4",
-                              isSelected && "text-primary",
+                              isSelected
+                                ? "text-primary"
+                                : getProviderColor(model.provider),
                             )}
                           />
                           <span

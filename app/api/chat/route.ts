@@ -63,6 +63,20 @@ export async function POST(req: NextRequest) {
 
     const apiKeys = userSettings?.api_keys as Record<string, string> | null;
 
+    // Prepare API keys for the model provider
+    const providerApiKeys: Record<string, string> = {};
+    if (apiKeys?.openai || process.env.OPENAI_API_KEY) {
+      providerApiKeys.openai = apiKeys?.openai || process.env.OPENAI_API_KEY!;
+    }
+    if (apiKeys?.anthropic || process.env.ANTHROPIC_API_KEY) {
+      providerApiKeys.anthropic =
+        apiKeys?.anthropic || process.env.ANTHROPIC_API_KEY!;
+    }
+    if (apiKeys?.google || process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+      providerApiKeys.google =
+        apiKeys?.google || process.env.GOOGLE_GENERATIVE_AI_API_KEY!;
+    }
+
     // Convert messages to core format
     // First normalize the message format (useChat sends parts array, but we need string content)
     const normalizedMessages = messages.map((msg) => ({
@@ -183,21 +197,34 @@ export async function POST(req: NextRequest) {
 
     console.log("Core messages:", coreMessages);
 
-    // Get language model instance
-    const languageModel = getLanguageModel(
-      model,
-      apiKeys?.openai || process.env.OPENAI_API_KEY,
-    );
-
-    console.log("Language model created:", languageModel);
-    console.log(
-      "API Key available:",
-      !!(apiKeys?.openai || process.env.OPENAI_API_KEY),
-    );
+    // Get language model instance with error handling
+    let languageModel;
+    try {
+      languageModel = getLanguageModel(model, providerApiKeys);
+      console.log("Language model created:", languageModel);
+      console.log("Provider API keys available:", {
+        openai: !!providerApiKeys.openai,
+        anthropic: !!providerApiKeys.anthropic,
+        google: !!providerApiKeys.google,
+      });
+    } catch (modelError) {
+      console.error("Error creating language model:", modelError);
+      const errorMessage =
+        modelError instanceof Error ? modelError.message : "Unknown error";
+      return new Response(
+        JSON.stringify({
+          error: `Failed to initialize AI model: ${errorMessage}`,
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
 
     // Stream the response
     try {
-      console.log("About to call streamText with OpenAI...");
+      console.log(`About to call streamText with ${model}...`);
 
       const result = await streamText({
         model: languageModel,
