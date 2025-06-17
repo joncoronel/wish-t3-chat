@@ -2,9 +2,10 @@ import { redirect } from "next/navigation";
 import { SWRConfig } from "swr";
 import { getUser } from "@/lib/auth";
 import { getConversations } from "@/lib/data/conversations";
-import { Header } from "@/components/layout/header";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarTriggerWithNewChat } from "@/components/layout/sidebar-trigger-with-new-chat";
+import { HeaderToolsOverlay } from "@/components/layout/header-tools-overlay";
 
 export default async function DashboardLayout({
   children,
@@ -30,11 +31,12 @@ export default async function DashboardLayout({
     >
       <div className="flex h-screen">
         <SidebarProvider>
-          <AppSidebar userId={user.id} />
+          <AppSidebar userId={user.id} user={user} />
           <SidebarInset className="flex flex-col overflow-clip">
-            <Header user={user} />
             <main className="flex-1 overflow-hidden">{children}</main>
           </SidebarInset>
+          <SidebarTriggerWithNewChat />
+          <HeaderToolsOverlay />
         </SidebarProvider>
       </div>
     </SWRConfig>

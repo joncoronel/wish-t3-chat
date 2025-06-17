@@ -1,5 +1,4 @@
 import { getUser } from "@/lib/auth";
-import { ChatHeader } from "@/components/chat/chat-header";
 import { ChatInputWrapper } from "@/components/chat/chat-input-wrapper";
 
 export default async function ChatLayout({
@@ -16,9 +15,6 @@ export default async function ChatLayout({
 
   return (
     <div className="relative flex h-full flex-col">
-      {/* Header - Always visible */}
-      <ChatHeader />
-
       {/* Content Area - This changes based on route with its own scroll */}
       <div className="min-h-0 flex-1">{children}</div>
 

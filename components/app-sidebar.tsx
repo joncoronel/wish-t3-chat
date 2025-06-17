@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { MessageSquare, Search, Trash2, Loader2 } from "lucide-react";
+import {
+  MessageSquare,
+  Search,
+  Trash2,
+  Loader2,
+  Settings,
+  Share,
+  Plus,
+} from "lucide-react";
 import { useChatUrl } from "@/hooks/use-chat-url";
 import { useChatLoading } from "@/hooks/use-chat-loading";
 import {
@@ -11,7 +19,6 @@ import {
   deleteConversation,
 } from "@/hooks/use-conversations";
 import { Badge } from "@/components/ui/badge";
-import { NewChatButton } from "@/components/chat/new-chat-button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   AlertDialog,
@@ -39,15 +46,28 @@ import {
   SidebarMenuItem,
   SidebarMenuAction,
 } from "@/components/ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { signOut } from "@/lib/auth/actions";
+import type { User } from "@supabase/supabase-js";
+import { Button } from "@/components/ui/button";
 
 interface AppSidebarProps {
   userId: string;
+  user: User;
 }
 
-export function AppSidebar({ userId }: AppSidebarProps) {
+export function AppSidebar({ userId, user }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { navigateToChat } = useChatUrl();
+  const { navigateToChat, navigateToNewChat } = useChatUrl();
   const { isLoading: isChatLoading } = useChatLoading();
   const { data: conversations = [] } = useConversations(userId);
   const [searchQuery, setSearchQuery] = useState("");
@@ -132,17 +152,36 @@ export function AppSidebar({ userId }: AppSidebarProps) {
     }
   };
 
+  const handleSettings = () => {
+    // TODO: Implement settings
+    console.log("Settings clicked");
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   return (
-    <Sidebar variant="inset" className="w-64 flex-shrink-0 overflow-hidden">
+    <Sidebar variant="floating" className="w-64 flex-shrink-0 overflow-hidden">
       <SidebarHeader>
-        <NewChatButton
-          variant="default"
-          size="sm"
-          className="w-full justify-start"
-        />
+        <div className="text-muted-foreground py-2 text-center text-sm font-medium">
+          Wish T3 Chat
+        </div>
       </SidebarHeader>
 
       <SidebarContent className="flex flex-col overflow-hidden">
+        {/* New Chat Button Section */}
+        <div className="flex-shrink-0 p-2">
+          <Button
+            onClick={navigateToNewChat}
+            className="h-9 w-full justify-start gap-2"
+            variant="outline"
+          >
+            <Plus className="h-4 w-4" />
+            New chat
+          </Button>
+        </div>
+
         <SidebarGroup className="flex-shrink-0">
           <SidebarGroupLabel>Search</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -285,8 +324,60 @@ export function AppSidebar({ userId }: AppSidebarProps) {
       </SidebarContent>
 
       <SidebarFooter>
-        <div className="text-muted-foreground text-center text-xs">
-          <p>Built with ❤️ for T3 Chat Clone</p>
+        <div className="space-y-2">
+          {/* User Account Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.user_metadata?.avatar_url} />
+                  <AvatarFallback>
+                    {user.user_metadata?.full_name
+                      ? user.user_metadata.full_name.charAt(0).toUpperCase()
+                      : user.email?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 overflow-hidden">
+                  <p className="truncate text-sm font-medium">
+                    {user.user_metadata?.full_name || "User"}
+                  </p>
+                  <p className="text-muted-foreground truncate text-xs">
+                    {user.email}
+                  </p>
+                </div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm leading-none font-medium">
+                    {user.user_metadata?.full_name || "User"}
+                  </p>
+                  <p className="text-muted-foreground text-xs leading-none">
+                    {user.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSettings}>
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Share className="mr-2 h-4 w-4" />
+                Share Feedback
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut}>
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Footer Text */}
+          <div className="text-muted-foreground text-center text-xs">
+            <p>Built with ❤️ for T3 Chat Clone</p>
+          </div>
         </div>
       </SidebarFooter>
     </Sidebar>
