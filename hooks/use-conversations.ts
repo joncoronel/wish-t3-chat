@@ -184,8 +184,9 @@ export function useConversation(conversationId: string, userId: string) {
       : null,
     () => fetchConversation(conversationId, userId),
     {
-      revalidateOnMount: false,
+      revalidateOnMount: true,
       revalidateOnFocus: false,
+      revalidateIfStale: false,
       // revalidateOnReconnect: false,
       // dedupingInterval: 60000, // 1 minute - prevent duplicate requests
     },
@@ -197,8 +198,9 @@ export function useMessages(conversationId: string) {
     conversationId ? `messages-${conversationId}` : null,
     () => fetchMessages(conversationId),
     {
-      revalidateOnMount: false,
+      revalidateOnMount: true,
       revalidateOnFocus: false,
+      revalidateIfStale: false,
       // revalidateOnReconnect: false,
       // dedupingInterval: 60000, // 1 minute - prevent duplicate requests
     },

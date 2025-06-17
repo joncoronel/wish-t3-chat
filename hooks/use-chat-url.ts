@@ -7,6 +7,7 @@ export function useChatUrl() {
   const [chatId, setChatId] = useQueryState("id", {
     defaultValue: "",
     shallow: true,
+    history: "push",
   });
 
   const navigateToChat = useCallback(

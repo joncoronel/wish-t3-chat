@@ -47,6 +47,9 @@ export function ChatInterface({
   // Current conversation ID for this chat session
   const currentConversationId = chatId || activeConversationId;
 
+  // Create a stable key for the useChat hook to ensure proper isolation
+  const chatKey = currentConversationId || `new-chat-${userId}`;
+
   // Define prompts for each category
   const categoryPrompts = {
     default: [
@@ -99,7 +102,7 @@ export function ChatInterface({
     setMessages,
   } = useChat({
     api: "/api/chat",
-    id: currentConversationId || "temp",
+    id: chatKey, // Use stable key for proper isolation
     initialMessages: messages.map((msg) => ({
       id: msg.id,
       role: msg.role as "user" | "assistant" | "system",
@@ -111,16 +114,9 @@ export function ChatInterface({
       max_tokens: 2048,
       conversationId: currentConversationId,
     },
-    // onResponse: async (response) => {
-    //   console.log("Response received:", response);
-    //   if (userId && currentConversationId && response.ok) {
-    //     // Update conversations cache immediately when API confirms message was saved
-    //     mutate(`conversations-${userId}`);
-    //   }
-    // },
 
     onFinish: async (message) => {
-      console.log("Message finished:", message);
+      console.log("Message finished for chat:", chatKey, message);
 
       if (userId && currentConversationId) {
         // Clear loading state when AI response is complete
@@ -132,7 +128,7 @@ export function ChatInterface({
       }
     },
     onError: (error) => {
-      console.error("Chat error:", error);
+      console.error("Chat error for chat:", chatKey, error);
       toast.error("Failed to send message: " + error.message);
 
       // Clear loading state on error

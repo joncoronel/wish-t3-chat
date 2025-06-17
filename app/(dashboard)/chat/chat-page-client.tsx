@@ -26,8 +26,16 @@ export function ChatPageClient({ userId, initialChatId }: ChatPageClientProps) {
   // After initialization, use the client-side chatId exclusively
   const activeChatId = hasInitialized ? chatId : initialChatId;
 
+  // Create a stable key for proper component isolation
+  const componentKey = activeChatId || `new-chat-${userId}`;
+
   // Let SWR handle all data fetching through the ChatInterface and its hooks
   return (
-    <ChatInterface chatId={activeChatId} userId={userId} className="h-full" />
+    <ChatInterface
+      key={componentKey}
+      chatId={activeChatId || undefined}
+      userId={userId}
+      className="h-full"
+    />
   );
 }
