@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
 import { ChatInput } from "./chat-input";
 import { useChatUrl } from "@/hooks/use-chat-url";
 import { useChatLoading } from "@/hooks/use-chat-loading";
@@ -25,9 +24,7 @@ export interface ChatMessageEventDetail {
 }
 
 export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
-  const params = useParams();
-  const chatId = params?.id as string | undefined;
-  const { navigateToChat } = useChatUrl();
+  const { chatId, navigateToChat } = useChatUrl();
   const { setLoading } = useChatLoading();
   const [selectedModel, setSelectedModel] = useState<string>("gpt-4");
 

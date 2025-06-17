@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import Link from "next/link";
+
 import {
   MessageSquare,
   Search,
@@ -65,18 +64,15 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ userId, user }: AppSidebarProps) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const { navigateToChat, navigateToNewChat } = useChatUrl();
+  const {
+    chatId: currentChatId,
+    navigateToChat,
+    navigateToNewChat,
+  } = useChatUrl();
   const { isLoading: isChatLoading } = useChatLoading();
   const { data: conversations = [] } = useConversations(userId);
   const [searchQuery, setSearchQuery] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  // Extract chat ID from URL path
-  const currentChatId = pathname.startsWith("/chat/")
-    ? pathname.split("/chat/")[1]
-    : null;
 
   const filteredConversations = conversations.filter(
     (conversation) =>
@@ -138,9 +134,9 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
     try {
       await deleteConversation(conversationId, userId, conversations);
 
-      // If we're currently viewing the deleted conversation, redirect to chat page
+      // If we're currently viewing the deleted conversation, navigate to new chat
       if (currentChatId === conversationId) {
-        router.push("/chat");
+        navigateToNewChat();
       }
 
       toast.success("Conversation deleted successfully");
@@ -234,36 +230,30 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
                                 className="mb-1 overflow-hidden"
                               >
                                 <SidebarMenuButton
-                                  asChild
                                   isActive={currentChatId === conversation.id}
-                                  className="relative h-auto min-h-[3rem] w-full overflow-hidden p-3"
+                                  className="relative h-auto min-h-[3rem] w-full cursor-pointer overflow-hidden p-3"
+                                  onMouseDown={() =>
+                                    handleConversationClick(conversation.id)
+                                  }
                                 >
-                                  <Link
-                                    href={`/chat/${conversation.id}`}
-                                    onMouseDown={() =>
-                                      handleConversationClick(conversation.id)
-                                    }
-                                    className="block w-full overflow-hidden"
-                                  >
-                                    <div className="flex w-full min-w-0 items-center overflow-hidden">
-                                      <span className="min-w-0 flex-1 truncate text-sm leading-tight font-medium">
-                                        {conversation.title || "Untitled Chat"}
-                                      </span>
-                                      {conversation.is_shared && (
-                                        <div className="ml-2 flex-shrink-0">
-                                          <Badge
-                                            variant="secondary"
-                                            className="text-xs"
-                                          >
-                                            Shared
-                                          </Badge>
-                                        </div>
-                                      )}
-                                    </div>
-                                    {isChatLoading(conversation.id) && (
-                                      <Loader2 className="text-muted-foreground absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin" />
+                                  <div className="flex w-full min-w-0 items-center overflow-hidden">
+                                    <span className="min-w-0 flex-1 truncate text-sm leading-tight font-medium">
+                                      {conversation.title || "Untitled Chat"}
+                                    </span>
+                                    {conversation.is_shared && (
+                                      <div className="ml-2 flex-shrink-0">
+                                        <Badge
+                                          variant="secondary"
+                                          className="text-xs"
+                                        >
+                                          Shared
+                                        </Badge>
+                                      </div>
                                     )}
-                                  </Link>
+                                  </div>
+                                  {isChatLoading(conversation.id) && (
+                                    <Loader2 className="text-muted-foreground absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin" />
+                                  )}
                                 </SidebarMenuButton>
                                 <AlertDialog>
                                   <SidebarMenuAction showOnHover asChild>

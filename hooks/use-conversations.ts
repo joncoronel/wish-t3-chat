@@ -171,6 +171,8 @@ export function useConversations(userId: string) {
     {
       revalidateOnMount: false,
       revalidateOnFocus: false,
+      // revalidateOnReconnect: false,
+      // dedupingInterval: 60000, // 1 minute - prevent duplicate requests
     },
   );
 }
@@ -184,6 +186,8 @@ export function useConversation(conversationId: string, userId: string) {
     {
       revalidateOnMount: false,
       revalidateOnFocus: false,
+      // revalidateOnReconnect: false,
+      // dedupingInterval: 60000, // 1 minute - prevent duplicate requests
     },
   );
 }
@@ -195,6 +199,8 @@ export function useMessages(conversationId: string) {
     {
       revalidateOnMount: false,
       revalidateOnFocus: false,
+      // revalidateOnReconnect: false,
+      // dedupingInterval: 60000, // 1 minute - prevent duplicate requests
     },
   );
 }

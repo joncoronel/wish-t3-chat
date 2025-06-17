@@ -1,33 +1,31 @@
 "use client";
 
 import { useQueryState } from "nuqs";
-import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
 export function useChatUrl() {
-  const router = useRouter();
   const [chatId, setChatId] = useQueryState("id", {
     defaultValue: "",
-    shallow: false,
+    shallow: true,
   });
 
   const navigateToChat = useCallback(
     (id: string) => {
       if (id) {
-        router.push(`/chat/${id}`);
+        setChatId(id);
       } else {
-        router.push("/chat");
+        setChatId("");
       }
     },
-    [router],
+    [setChatId],
   );
 
   const navigateToNewChat = useCallback(() => {
-    router.push("/chat");
-  }, [router]);
+    setChatId("");
+  }, [setChatId]);
 
   return {
-    chatId,
+    chatId: chatId || null,
     setChatId,
     navigateToChat,
     navigateToNewChat,

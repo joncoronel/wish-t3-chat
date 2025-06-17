@@ -219,26 +219,19 @@ export function ChatInterface({
         if (!chatId) {
           console.log("Starting new conversation...");
 
-          // If this is from a pending message, extract the conversation ID from URL and do optimistic update
-          if (fromPendingMessage) {
-            // Extract conversationId from the current URL since we're now on /chat/[id]
-            const currentPath = window.location.pathname;
-            const pathParts = currentPath.split("/");
-            const urlConversationId = pathParts[pathParts.length - 1];
+          // If this is from a pending message, we should have a chatId from the query parameter
+          if (fromPendingMessage && chatId) {
+            setActiveConversationId(chatId);
 
-            if (urlConversationId && urlConversationId !== "chat") {
-              setActiveConversationId(urlConversationId);
+            // Set loading state for pending message
+            setLoading(chatId, true);
 
-              // Set loading state for pending message
-              setLoading(urlConversationId, true);
-
-              // Send the message - the API will create the conversation if it doesn't exist
-              await append({
-                role: "user",
-                content: messageContent,
-              });
-              return;
-            }
+            // Send the message - the API will create the conversation if it doesn't exist
+            await append({
+              role: "user",
+              content: messageContent,
+            });
+            return;
           }
 
           // For welcome screen prompts, create new conversation optimistically

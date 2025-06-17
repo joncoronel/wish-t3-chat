@@ -27,6 +27,12 @@ export default async function DashboardLayout({
         fallback: {
           [`conversations-${user.id}`]: conversations,
         },
+        // Global SWR configuration to prevent unnecessary fetches
+        revalidateOnMount: false,
+        revalidateOnFocus: false,
+        revalidateOnReconnect: false,
+        dedupingInterval: 60000, // 1 minute
+        // focusThrottleInterval: 60000, // 1 minute
       }}
     >
       <div className="flex h-screen">
