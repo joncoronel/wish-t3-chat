@@ -5,7 +5,7 @@ import { getModelById } from "@/lib/ai";
 
 export function useGlobalModel() {
   const [selectedModel, setSelectedModel] = useQueryState("model", {
-    defaultValue: "gpt-4",
+    defaultValue: "gemini-2.5-flash-lite-preview-06-17",
     shallow: true, // Include in browser history
   });
 

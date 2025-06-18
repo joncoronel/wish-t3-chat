@@ -21,6 +21,7 @@ const chatRequestSchema = z.object({
   temperature: z.number().min(0).max(2).optional().default(0.7),
   max_tokens: z.number().min(1).max(4096).optional().default(2048),
   conversationId: z.string().optional(),
+  apiKeys: z.record(z.string()).optional(), // Client-provided API keys
   attachments: z
     .array(
       z.object({
@@ -51,6 +52,7 @@ export async function POST(req: NextRequest) {
       temperature,
       max_tokens,
       conversationId,
+      apiKeys,
       attachments,
     } = chatRequestSchema.parse(body);
 
@@ -62,6 +64,7 @@ export async function POST(req: NextRequest) {
       temperature,
       max_tokens,
       conversationId,
+      hasApiKeys: !!apiKeys && Object.keys(apiKeys).length > 0,
     });
 
     // Get authenticated user
@@ -74,27 +77,19 @@ export async function POST(req: NextRequest) {
       return new Response("Unauthorized", { status: 401 });
     }
 
-    // Get user's API keys if they have custom ones
-    const { data: userSettings } = await supabase
-      .from("user_settings")
-      .select("api_keys")
-      .eq("user_id", user.id)
-      .single();
-
-    const apiKeys = userSettings?.api_keys as Record<string, string> | null;
-
-    // Prepare API keys for the model provider
+    // Use client-provided API keys (no fallback to environment variables)
     const providerApiKeys: Record<string, string> = {};
-    if (apiKeys?.openai || process.env.OPENAI_API_KEY) {
-      providerApiKeys.openai = apiKeys?.openai || process.env.OPENAI_API_KEY!;
+    if (apiKeys?.openai) {
+      providerApiKeys.openai = apiKeys.openai;
     }
-    if (apiKeys?.anthropic || process.env.ANTHROPIC_API_KEY) {
-      providerApiKeys.anthropic =
-        apiKeys?.anthropic || process.env.ANTHROPIC_API_KEY!;
+    if (apiKeys?.anthropic) {
+      providerApiKeys.anthropic = apiKeys.anthropic;
     }
-    if (apiKeys?.google || process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-      providerApiKeys.google =
-        apiKeys?.google || process.env.GOOGLE_GENERATIVE_AI_API_KEY!;
+    if (apiKeys?.google) {
+      providerApiKeys.google = apiKeys.google;
+    }
+    if (apiKeys?.openrouter) {
+      providerApiKeys.openrouter = apiKeys.openrouter;
     }
 
     // Convert messages to core format
@@ -309,20 +304,42 @@ export async function POST(req: NextRequest) {
     // Get language model instance with error handling
     let languageModel;
     try {
-      languageModel = getLanguageModel(model, providerApiKeys);
-      console.log("Language model created:", languageModel);
-      console.log("Provider API keys available:", {
-        openai: !!providerApiKeys.openai,
-        anthropic: !!providerApiKeys.anthropic,
-        google: !!providerApiKeys.google,
+      console.log("Attempting to create language model:", {
+        model,
+        clientApiKeys: {
+          openai: !!apiKeys?.openai,
+          anthropic: !!apiKeys?.anthropic,
+          google: !!apiKeys?.google,
+          openrouter: !!apiKeys?.openrouter,
+        },
       });
+
+      languageModel = getLanguageModel(model, providerApiKeys);
+      console.log("Language model created successfully");
     } catch (modelError) {
       console.error("Error creating language model:", modelError);
+      console.error("Model error details:", {
+        message:
+          modelError instanceof Error ? modelError.message : "Unknown error",
+        stack:
+          modelError instanceof Error ? modelError.stack : "No stack trace",
+        model,
+        providerApiKeys: Object.keys(providerApiKeys),
+      });
+
       const errorMessage =
         modelError instanceof Error ? modelError.message : "Unknown error";
       return new Response(
         JSON.stringify({
           error: `Failed to initialize AI model: ${errorMessage}`,
+          details: {
+            model,
+            availableProviders: Object.keys(providerApiKeys),
+            errorType:
+              modelError instanceof Error
+                ? modelError.constructor.name
+                : "Unknown",
+          },
         }),
         {
           status: 400,

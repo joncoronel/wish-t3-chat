@@ -1,8 +1,5 @@
-import { openai } from "@ai-sdk/openai";
 import { createOpenAI } from "@ai-sdk/openai";
-import { anthropic } from "@ai-sdk/anthropic";
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { google } from "@ai-sdk/google";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import type { LanguageModel } from "ai";
 
@@ -21,39 +18,25 @@ export interface AIModel {
   };
 }
 
+// Consolidated model definition for deduplication
+export interface ConsolidatedModel {
+  baseId: string; // e.g., "gpt-4.1", "claude-opus-4"
+  name: string;
+  description: string;
+  maxTokens: number;
+  supportsFunctions: boolean;
+  supportsVision: boolean;
+  sources: {
+    provider: string;
+    modelId: string;
+    costPer1kTokens: { input: number; output: number };
+    preferred?: boolean; // Mark the preferred source
+  }[];
+}
+
 // Available models configuration
 export const AI_MODELS: AIModel[] = [
   // OpenAI Models
-  {
-    id: "gpt-4",
-    name: "GPT-4",
-    provider: "openai",
-    description: "Most capable GPT-4 model",
-    maxTokens: 8192,
-    supportsFunctions: true,
-    supportsVision: false,
-    costPer1kTokens: { input: 0.03, output: 0.06 },
-  },
-  {
-    id: "gpt-4-turbo",
-    name: "GPT-4 Turbo",
-    provider: "openai",
-    description: "Latest GPT-4 model with improved performance",
-    maxTokens: 128000,
-    supportsFunctions: true,
-    supportsVision: true,
-    costPer1kTokens: { input: 0.01, output: 0.03 },
-  },
-  {
-    id: "gpt-3.5-turbo",
-    name: "GPT-3.5 Turbo",
-    provider: "openai",
-    description: "Fast and cost-effective model",
-    maxTokens: 16384,
-    supportsFunctions: true,
-    supportsVision: false,
-    costPer1kTokens: { input: 0.001, output: 0.002 },
-  },
   {
     id: "gpt-4.1",
     name: "GPT-4.1",
@@ -90,7 +73,7 @@ export const AI_MODELS: AIModel[] = [
     id: "claude-opus-4-20250514",
     name: "Claude Opus 4",
     provider: "anthropic",
-    description: "Anthropic's most powerful and intelligent model",
+    description: "Claude's most powerful model",
     maxTokens: 200000,
     supportsFunctions: true,
     supportsVision: true,
@@ -100,7 +83,7 @@ export const AI_MODELS: AIModel[] = [
     id: "claude-sonnet-4-20250514",
     name: "Claude Sonnet 4",
     provider: "anthropic",
-    description: "Next-generation balanced model for complex reasoning",
+    description: "Balance of intelligence and speed",
     maxTokens: 200000,
     supportsFunctions: true,
     supportsVision: true,
@@ -110,17 +93,7 @@ export const AI_MODELS: AIModel[] = [
     id: "claude-3-7-sonnet-20250219",
     name: "Claude Sonnet 3.7",
     provider: "anthropic",
-    description: "Enhanced Sonnet model with improved capabilities",
-    maxTokens: 200000,
-    supportsFunctions: true,
-    supportsVision: true,
-    costPer1kTokens: { input: 0.003, output: 0.015 },
-  },
-  {
-    id: "claude-3-5-sonnet-20241022",
-    name: "Claude Sonnet 3.5",
-    provider: "anthropic",
-    description: "Anthropic's most intelligent model",
+    description: "Advanced reasoning and analysis",
     maxTokens: 200000,
     supportsFunctions: true,
     supportsVision: true,
@@ -135,6 +108,26 @@ export const AI_MODELS: AIModel[] = [
     supportsFunctions: true,
     supportsVision: true,
     costPer1kTokens: { input: 0.0008, output: 0.004 },
+  },
+  {
+    id: "claude-3-5-sonnet-20241022",
+    name: "Claude Sonnet 3.5 v2",
+    provider: "anthropic",
+    description: "Latest Sonnet 3.5 with improved capabilities",
+    maxTokens: 200000,
+    supportsFunctions: true,
+    supportsVision: true,
+    costPer1kTokens: { input: 0.003, output: 0.015 },
+  },
+  {
+    id: "claude-3-5-sonnet-20240620",
+    name: "Claude Sonnet 3.5",
+    provider: "anthropic",
+    description: "Original Sonnet 3.5 model",
+    maxTokens: 200000,
+    supportsFunctions: true,
+    supportsVision: true,
+    costPer1kTokens: { input: 0.003, output: 0.015 },
   },
 
   // Google Gemini Models
@@ -152,7 +145,7 @@ export const AI_MODELS: AIModel[] = [
     id: "gemini-2.5-flash",
     name: "Gemini 2.5 Flash",
     provider: "google",
-    description: "Fast and efficient Gemini model",
+    description: "Fast and efficient multimodal model",
     maxTokens: 1000000,
     supportsFunctions: true,
     supportsVision: true,
@@ -162,13 +155,433 @@ export const AI_MODELS: AIModel[] = [
     id: "gemini-2.5-flash-lite-preview-06-17",
     name: "Gemini 2.5 Flash-Lite Preview",
     provider: "google",
-    description: "Lightweight preview version of Gemini 2.5 Flash",
+    description: "Lightweight preview model",
+    maxTokens: 1000000,
+    supportsFunctions: true,
+    supportsVision: true,
+    costPer1kTokens: { input: 0.00015, output: 0.0006 },
+  },
+
+  // OpenRouter Models
+  {
+    id: "openai/gpt-4.1",
+    name: "GPT-4.1",
+    provider: "openrouter",
+    description: "OpenAI's GPT-4.1 model through OpenRouter",
+    maxTokens: 128000,
+    supportsFunctions: true,
+    supportsVision: true,
+    costPer1kTokens: { input: 2.0, output: 8.0 },
+  },
+  {
+    id: "openai/gpt-4.1-mini",
+    name: "GPT-4.1 mini",
+    provider: "openrouter",
+    description: "OpenAI's GPT-4.1 mini model through OpenRouter",
+    maxTokens: 128000,
+    supportsFunctions: true,
+    supportsVision: true,
+    costPer1kTokens: { input: 0.4, output: 1.6 },
+  },
+  {
+    id: "openai/gpt-4.1-nano",
+    name: "GPT-4.1 nano",
+    provider: "openrouter",
+    description: "OpenAI's GPT-4.1 nano model through OpenRouter",
+    maxTokens: 128000,
+    supportsFunctions: true,
+    supportsVision: true,
+    costPer1kTokens: { input: 0.1, output: 0.4 },
+  },
+  {
+    id: "anthropic/claude-opus-4",
+    name: "Claude Opus 4",
+    provider: "openrouter",
+    description: "Anthropic's Claude Opus 4 through OpenRouter",
+    maxTokens: 200000,
+    supportsFunctions: true,
+    supportsVision: true,
+    costPer1kTokens: { input: 0.015, output: 0.075 },
+  },
+  {
+    id: "anthropic/claude-sonnet-4",
+    name: "Claude Sonnet 4",
+    provider: "openrouter",
+    description: "Anthropic's Claude Sonnet 4 through OpenRouter",
+    maxTokens: 200000,
+    supportsFunctions: true,
+    supportsVision: true,
+    costPer1kTokens: { input: 0.003, output: 0.015 },
+  },
+  {
+    id: "anthropic/claude-3-7-sonnet",
+    name: "Claude Sonnet 3.7",
+    provider: "openrouter",
+    description: "Anthropic's Claude Sonnet 3.7 through OpenRouter",
+    maxTokens: 200000,
+    supportsFunctions: true,
+    supportsVision: true,
+    costPer1kTokens: { input: 0.003, output: 0.015 },
+  },
+  {
+    id: "anthropic/claude-3-5-haiku",
+    name: "Claude Haiku 3.5",
+    provider: "openrouter",
+    description: "Anthropic's Claude Haiku 3.5 through OpenRouter",
+    maxTokens: 200000,
+    supportsFunctions: true,
+    supportsVision: true,
+    costPer1kTokens: { input: 0.0008, output: 0.004 },
+  },
+  {
+    id: "anthropic/claude-3-5-sonnet",
+    name: "Claude Sonnet 3.5 v2",
+    provider: "openrouter",
+    description: "Anthropic's Claude Sonnet 3.5 v2 through OpenRouter",
+    maxTokens: 200000,
+    supportsFunctions: true,
+    supportsVision: true,
+    costPer1kTokens: { input: 0.003, output: 0.015 },
+  },
+  {
+    id: "anthropic/claude-3-5-sonnet-legacy",
+    name: "Claude Sonnet 3.5",
+    provider: "openrouter",
+    description: "Anthropic's Claude Sonnet 3.5 (original) through OpenRouter",
+    maxTokens: 200000,
+    supportsFunctions: true,
+    supportsVision: true,
+    costPer1kTokens: { input: 0.003, output: 0.015 },
+  },
+  {
+    id: "google/gemini-2.5-pro",
+    name: "Gemini 2.5 Pro",
+    provider: "openrouter",
+    description: "Google's Gemini 2.5 Pro through OpenRouter",
+    maxTokens: 2000000,
+    supportsFunctions: true,
+    supportsVision: true,
+    costPer1kTokens: { input: 0.0035, output: 0.0105 },
+  },
+  {
+    id: "google/gemini-2.5-flash",
+    name: "Gemini 2.5 Flash",
+    provider: "openrouter",
+    description: "Google's Gemini 2.5 Flash through OpenRouter",
+    maxTokens: 1000000,
+    supportsFunctions: true,
+    supportsVision: true,
+    costPer1kTokens: { input: 0.00015, output: 0.0006 },
+  },
+  {
+    id: "google/gemini-2.5-flash-lite-preview",
+    name: "Gemini 2.5 Flash-Lite Preview",
+    provider: "openrouter",
+    description: "Google's Gemini 2.5 Flash-Lite Preview through OpenRouter",
     maxTokens: 1000000,
     supportsFunctions: true,
     supportsVision: true,
     costPer1kTokens: { input: 0.00015, output: 0.0006 },
   },
 ];
+
+// Consolidated models for deduplication
+export const CONSOLIDATED_MODELS: ConsolidatedModel[] = [
+  {
+    baseId: "gpt-4.1",
+    name: "GPT-4.1",
+    description: "Smartest model for complex tasks",
+    maxTokens: 128000,
+    supportsFunctions: true,
+    supportsVision: true,
+    sources: [
+      {
+        provider: "openai",
+        modelId: "gpt-4.1",
+        costPer1kTokens: { input: 2.0, output: 8.0 },
+        preferred: true,
+      },
+      {
+        provider: "openrouter",
+        modelId: "openai/gpt-4.1",
+        costPer1kTokens: { input: 2.0, output: 8.0 },
+      },
+    ],
+  },
+  {
+    baseId: "gpt-4.1-mini",
+    name: "GPT-4.1 mini",
+    description: "Affordable model balancing speed and intelligence",
+    maxTokens: 128000,
+    supportsFunctions: true,
+    supportsVision: true,
+    sources: [
+      {
+        provider: "openai",
+        modelId: "gpt-4.1-mini",
+        costPer1kTokens: { input: 0.4, output: 1.6 },
+        preferred: true,
+      },
+      {
+        provider: "openrouter",
+        modelId: "openai/gpt-4.1-mini",
+        costPer1kTokens: { input: 0.4, output: 1.6 },
+      },
+    ],
+  },
+  {
+    baseId: "gpt-4.1-nano",
+    name: "GPT-4.1 nano",
+    description: "Fastest, most cost-effective model for low-latency tasks",
+    maxTokens: 128000,
+    supportsFunctions: true,
+    supportsVision: true,
+    sources: [
+      {
+        provider: "openai",
+        modelId: "gpt-4.1-nano",
+        costPer1kTokens: { input: 0.1, output: 0.4 },
+        preferred: true,
+      },
+      {
+        provider: "openrouter",
+        modelId: "openai/gpt-4.1-nano",
+        costPer1kTokens: { input: 0.1, output: 0.4 },
+      },
+    ],
+  },
+  {
+    baseId: "claude-opus-4",
+    name: "Claude Opus 4",
+    description: "Claude's most powerful model",
+    maxTokens: 200000,
+    supportsFunctions: true,
+    supportsVision: true,
+    sources: [
+      {
+        provider: "anthropic",
+        modelId: "claude-opus-4-20250514",
+        costPer1kTokens: { input: 0.015, output: 0.075 },
+        preferred: true,
+      },
+      {
+        provider: "openrouter",
+        modelId: "anthropic/claude-opus-4",
+        costPer1kTokens: { input: 0.015, output: 0.075 },
+      },
+    ],
+  },
+  {
+    baseId: "claude-sonnet-4",
+    name: "Claude Sonnet 4",
+    description: "Balance of intelligence and speed",
+    maxTokens: 200000,
+    supportsFunctions: true,
+    supportsVision: true,
+    sources: [
+      {
+        provider: "anthropic",
+        modelId: "claude-sonnet-4-20250514",
+        costPer1kTokens: { input: 0.003, output: 0.015 },
+        preferred: true,
+      },
+      {
+        provider: "openrouter",
+        modelId: "anthropic/claude-sonnet-4",
+        costPer1kTokens: { input: 0.003, output: 0.015 },
+      },
+    ],
+  },
+  {
+    baseId: "claude-3-7-sonnet",
+    name: "Claude Sonnet 3.7",
+    description: "Advanced reasoning and analysis",
+    maxTokens: 200000,
+    supportsFunctions: true,
+    supportsVision: true,
+    sources: [
+      {
+        provider: "anthropic",
+        modelId: "claude-3-7-sonnet-20250219",
+        costPer1kTokens: { input: 0.003, output: 0.015 },
+        preferred: true,
+      },
+      {
+        provider: "openrouter",
+        modelId: "anthropic/claude-3-7-sonnet",
+        costPer1kTokens: { input: 0.003, output: 0.015 },
+      },
+    ],
+  },
+  {
+    baseId: "claude-3-5-haiku",
+    name: "Claude Haiku 3.5",
+    description: "Fast and cost-effective Claude model",
+    maxTokens: 200000,
+    supportsFunctions: true,
+    supportsVision: true,
+    sources: [
+      {
+        provider: "anthropic",
+        modelId: "claude-3-5-haiku-20241022",
+        costPer1kTokens: { input: 0.0008, output: 0.004 },
+        preferred: true,
+      },
+      {
+        provider: "openrouter",
+        modelId: "anthropic/claude-3-5-haiku",
+        costPer1kTokens: { input: 0.0008, output: 0.004 },
+      },
+    ],
+  },
+  {
+    baseId: "claude-3-5-sonnet-v2",
+    name: "Claude Sonnet 3.5 v2",
+    description: "Latest Sonnet 3.5 with improved capabilities",
+    maxTokens: 200000,
+    supportsFunctions: true,
+    supportsVision: true,
+    sources: [
+      {
+        provider: "anthropic",
+        modelId: "claude-3-5-sonnet-20241022",
+        costPer1kTokens: { input: 0.003, output: 0.015 },
+        preferred: true,
+      },
+      {
+        provider: "openrouter",
+        modelId: "anthropic/claude-3-5-sonnet",
+        costPer1kTokens: { input: 0.003, output: 0.015 },
+      },
+    ],
+  },
+  {
+    baseId: "claude-3-5-sonnet",
+    name: "Claude Sonnet 3.5",
+    description: "Original Sonnet 3.5 model",
+    maxTokens: 200000,
+    supportsFunctions: true,
+    supportsVision: true,
+    sources: [
+      {
+        provider: "anthropic",
+        modelId: "claude-3-5-sonnet-20240620",
+        costPer1kTokens: { input: 0.003, output: 0.015 },
+        preferred: true,
+      },
+      {
+        provider: "openrouter",
+        modelId: "anthropic/claude-3-5-sonnet-legacy",
+        costPer1kTokens: { input: 0.003, output: 0.015 },
+      },
+    ],
+  },
+  {
+    baseId: "gemini-2.5-pro",
+    name: "Gemini 2.5 Pro",
+    description: "Google's most capable multimodal model",
+    maxTokens: 2000000,
+    supportsFunctions: true,
+    supportsVision: true,
+    sources: [
+      {
+        provider: "google",
+        modelId: "gemini-2.5-pro",
+        costPer1kTokens: { input: 0.0035, output: 0.0105 },
+        preferred: true,
+      },
+      {
+        provider: "openrouter",
+        modelId: "google/gemini-2.5-pro",
+        costPer1kTokens: { input: 0.0035, output: 0.0105 },
+      },
+    ],
+  },
+  {
+    baseId: "gemini-2.5-flash",
+    name: "Gemini 2.5 Flash",
+    description: "Fast and efficient multimodal model",
+    maxTokens: 1000000,
+    supportsFunctions: true,
+    supportsVision: true,
+    sources: [
+      {
+        provider: "google",
+        modelId: "gemini-2.5-flash",
+        costPer1kTokens: { input: 0.00015, output: 0.0006 },
+        preferred: true,
+      },
+      {
+        provider: "openrouter",
+        modelId: "google/gemini-2.5-flash",
+        costPer1kTokens: { input: 0.00015, output: 0.0006 },
+      },
+    ],
+  },
+  {
+    baseId: "gemini-2.5-flash-lite-preview",
+    name: "Gemini 2.5 Flash-Lite Preview",
+    description: "Lightweight preview model",
+    maxTokens: 1000000,
+    supportsFunctions: true,
+    supportsVision: true,
+    sources: [
+      {
+        provider: "google",
+        modelId: "gemini-2.5-flash-lite-preview-06-17",
+        costPer1kTokens: { input: 0.00015, output: 0.0006 },
+        preferred: true,
+      },
+      {
+        provider: "openrouter",
+        modelId: "google/gemini-2.5-flash-lite-preview",
+        costPer1kTokens: { input: 0.00015, output: 0.0006 },
+      },
+    ],
+  },
+];
+
+// Helper function to get available sources for a consolidated model
+export function getAvailableSources(
+  consolidatedModel: ConsolidatedModel,
+  apiKeys: Record<string, string>,
+): ConsolidatedModel["sources"] {
+  return consolidatedModel.sources.filter((source) => {
+    switch (source.provider) {
+      case "openai":
+        return !!apiKeys.openai;
+      case "anthropic":
+        return !!apiKeys.anthropic;
+      case "google":
+        return !!apiKeys.google;
+      case "openrouter":
+        return !!apiKeys.openrouter;
+      default:
+        return false;
+    }
+  });
+}
+
+// Helper function to select the best available source
+export function selectBestSource(
+  consolidatedModel: ConsolidatedModel,
+  apiKeys: Record<string, string>,
+): ConsolidatedModel["sources"][0] | null {
+  const availableSources = getAvailableSources(consolidatedModel, apiKeys);
+
+  if (availableSources.length === 0) {
+    return null;
+  }
+
+  // Prefer the preferred source if available
+  const preferredSource = availableSources.find((source) => source.preferred);
+  if (preferredSource) {
+    return preferredSource;
+  }
+
+  // Otherwise return the first available source
+  return availableSources[0];
+}
 
 // Provider configurations
 export const AI_PROVIDERS = {
@@ -190,6 +603,12 @@ export const AI_PROVIDERS = {
     requiresApiKey: true,
     envKey: "GOOGLE_GENERATIVE_AI_API_KEY",
   },
+  openrouter: {
+    name: "OpenRouter",
+    models: AI_MODELS.filter((m) => m.provider === "openrouter"),
+    requiresApiKey: true,
+    envKey: "OPENROUTER_API_KEY",
+  },
 };
 
 // Get language model instance
@@ -202,31 +621,68 @@ export function getLanguageModel(
     throw new Error(`Model ${modelId} not found`);
   }
 
+  console.log(
+    `Creating language model for: ${modelId} (provider: ${model.provider})`,
+  );
+
   switch (model.provider) {
     case "openai":
-      const openaiKey = apiKeys?.openai || process.env.OPENAI_API_KEY;
-      if (openaiKey && openaiKey !== process.env.OPENAI_API_KEY) {
-        const customOpenAI = createOpenAI({ apiKey: openaiKey });
-        return customOpenAI(modelId);
+      const openaiKey = apiKeys?.openai;
+      if (!openaiKey) {
+        throw new Error(
+          "OpenAI API key is required for this model. Please add your API key in Settings.",
+        );
       }
-      return openai(modelId);
+      const customOpenAI = createOpenAI({ apiKey: openaiKey });
+      return customOpenAI(modelId);
 
     case "anthropic":
-      const anthropicKey = apiKeys?.anthropic || process.env.ANTHROPIC_API_KEY;
-      if (anthropicKey && anthropicKey !== process.env.ANTHROPIC_API_KEY) {
-        const customAnthropic = createAnthropic({ apiKey: anthropicKey });
-        return customAnthropic(modelId);
+      const anthropicKey = apiKeys?.anthropic;
+      if (!anthropicKey) {
+        throw new Error(
+          "Anthropic API key is required for this model. Please add your API key in Settings.",
+        );
       }
-      return anthropic(modelId);
+      const customAnthropic = createAnthropic({ apiKey: anthropicKey });
+      return customAnthropic(modelId);
 
     case "google":
-      const googleKey =
-        apiKeys?.google || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-      if (googleKey && googleKey !== process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+      const googleKey = apiKeys?.google;
+      if (!googleKey) {
+        throw new Error(
+          "Google Generative AI API key is required for this model. Please add your API key in Settings.",
+        );
+      }
+      console.log(
+        `Using Google API key: ${googleKey ? "✓ Available" : "✗ Missing"}`,
+      );
+      try {
         const customGoogle = createGoogleGenerativeAI({ apiKey: googleKey });
         return customGoogle(modelId);
+      } catch (error) {
+        console.error("Error creating Google language model:", error);
+        throw new Error(
+          `Failed to create Google language model: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
-      return google(modelId);
+
+    case "openrouter":
+      const openrouterKey = apiKeys?.openrouter;
+      if (!openrouterKey) {
+        throw new Error(
+          "OpenRouter API key is required for this model. Please add your API key in Settings.",
+        );
+      }
+      const customOpenRouter = createOpenAI({
+        apiKey: openrouterKey,
+        baseURL: "https://openrouter.ai/api/v1",
+        headers: {
+          "HTTP-Referer":
+            process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+          "X-Title": "Wish T3 Chat Clone",
+        },
+      });
+      return customOpenRouter(modelId);
 
     default:
       throw new Error(`Provider ${model.provider} not implemented yet`);

@@ -11,6 +11,7 @@ import {
 import { useChatUrl } from "@/hooks/use-chat-url";
 import { useChatLoading } from "@/hooks/use-chat-loading";
 import { useGlobalModel } from "@/hooks/use-global-model";
+import { useApiKeys } from "@/hooks/use-api-keys";
 import { ChatWelcome } from "./chat-welcome";
 import { ChatMessages } from "./chat-messages";
 
@@ -50,6 +51,7 @@ export function ChatInterface({
   const { navigateToChat } = useChatUrl();
   const { setLoading } = useChatLoading();
   const { selectedModel } = useGlobalModel();
+  const { apiKeys } = useApiKeys();
 
   // Debug component lifecycle - will be added after handleSendMessage
 
@@ -141,6 +143,7 @@ export function ChatInterface({
       temperature: 0.7,
       max_tokens: 2048,
       conversationId: currentConversationId,
+      apiKeys: apiKeys,
     },
 
     onFinish: async () => {

@@ -47,22 +47,26 @@ export const getAuthUser = cache(async () => {
   } as AuthUser;
 });
 
-export const getUserSettings = cache(async () => {
-  const user = await getUser();
-  if (!user) return null;
-
+export const getUserSettings = cache(async (userId: string) => {
   const supabase = await createClient();
   const { data: userSettings, error } = await supabase
     .from("user_settings")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .single();
 
   if (error || !userSettings) {
     return null;
   }
 
-  return userSettings as UserSettings;
+  // API keys are now managed client-side via localStorage
+  // Return settings without API keys - they'll be loaded client-side
+  const completeSettings = {
+    ...userSettings,
+    api_keys: {}, // Empty object - API keys handled client-side
+  } as UserSettings;
+
+  return completeSettings;
 });
 
 // Helper function to check if user is authenticated

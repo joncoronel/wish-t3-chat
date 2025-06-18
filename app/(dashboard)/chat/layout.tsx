@@ -1,5 +1,6 @@
 import { getUser } from "@/lib/auth";
 import { ChatInputWrapper } from "@/components/chat/chat-input-wrapper";
+import { redirect } from "next/navigation";
 
 export default async function ChatLayout({
   children,
@@ -8,9 +9,8 @@ export default async function ChatLayout({
 }) {
   const user = await getUser();
 
-  // Parent layout already handles auth redirect, so user should exist
   if (!user) {
-    throw new Error("User not found in chat layout");
+    redirect("/login");
   }
 
   return (

@@ -149,8 +149,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
   };
 
   const handleSettings = () => {
-    // TODO: Implement settings
-    console.log("Settings clicked");
+    window.location.href = "/settings";
   };
 
   const handleSignOut = async () => {
