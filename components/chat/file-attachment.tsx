@@ -97,6 +97,18 @@ export function FileAttachment({
             className="max-h-64 max-w-sm rounded-md object-cover"
             onError={() => setImageError(true)}
           />
+          {/* Remove button for images when in attachment list */}
+          {showRemove && onRemove && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={onRemove}
+              className="absolute top-2 right-2 z-10 h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+              title="Remove attachment"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
           <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-md bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
             <Dialog>
               <DialogTrigger asChild>

@@ -105,6 +105,60 @@ function CompactFileAttachment({ attachment }: { attachment: ChatAttachment }) {
     }
   };
 
+  // If it's an image, render it directly
+  if (isImage) {
+    return (
+      <div className="group/imageContainer relative max-w-xs">
+        <img
+          src={attachment.url}
+          alt={attachment.name}
+          className="max-h-64 w-full rounded-lg object-cover"
+          onError={(e) => {
+            console.error("Image failed to load:", attachment.url);
+            // If image fails to load, show fallback
+            const target = e.target as HTMLImageElement;
+            target.style.display = "none";
+            const fallback = target.nextElementSibling as HTMLElement;
+            if (fallback) fallback.style.display = "block";
+          }}
+        />
+        {/* Fallback for failed image loads */}
+        <div
+          style={{ display: "none" }}
+          className="flex items-center gap-3 py-1 text-sm"
+        >
+          <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
+            <Image className="h-full w-auto" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate font-medium">{attachment.name}</div>
+            <div className="text-xs opacity-70">Image (failed to load)</div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleDownload}
+            className="h-8 w-8 p-0 opacity-70 hover:opacity-100"
+            title="Download file"
+          >
+            <Download className="h-4 w-4" />
+          </Button>
+        </div>
+        {/* Download button positioned at top-right corner */}
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleDownload}
+          className="absolute top-2 right-2 h-8 w-8 p-0 opacity-0 shadow-lg transition-opacity group-hover/imageContainer:opacity-100"
+          title="Download image"
+        >
+          <Download className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+
+  // For non-image files, use the compact card display
   return (
     <div className="flex items-center gap-3 py-1 text-sm">
       <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
@@ -246,35 +300,55 @@ export const MessageComponent = memo(function MessageComponent({
   return (
     <div className={cn("group flex justify-end gap-3 py-4", className)}>
       <div className="flex max-w-[70%] flex-col items-end space-y-2">
-        {/* Show attachments as separate cards above the message */}
+        {/* Show attachments above the message */}
         {attachments && attachments.length > 0 && (
           <div className="space-y-2">
-            {attachments.map((attachment) => (
-              <Card
-                key={attachment.id}
-                className="bg-muted text-muted-foreground border-muted px-3 py-2"
-              >
-                <CompactFileAttachment attachment={attachment} />
-              </Card>
-            ))}
+            {attachments.map((attachment) => {
+              const isImage =
+                attachment.type === "image" ||
+                attachment.mime_type.startsWith("image/");
+
+              // Images are displayed directly without a card wrapper
+              if (isImage) {
+                return (
+                  <CompactFileAttachment
+                    key={attachment.id}
+                    attachment={attachment}
+                  />
+                );
+              }
+
+              // Non-image files get the card wrapper
+              return (
+                <Card
+                  key={attachment.id}
+                  className="bg-muted text-muted-foreground border-muted px-3 py-2"
+                >
+                  <CompactFileAttachment attachment={attachment} />
+                </Card>
+              );
+            })}
           </div>
         )}
 
-        <Card
-          className={cn(
-            "bg-primary text-primary-foreground relative px-4 py-3",
-            isStreaming && "animate-pulse",
-          )}
-        >
-          <div className="text-sm leading-relaxed break-words">
-            <div className="whitespace-pre-wrap">
-              {message.content}
-              {isStreaming && (
-                <span className="ml-1 inline-block h-4 w-1 animate-pulse bg-current" />
-              )}
+        {/* Only show message bubble if there's actual text content */}
+        {message.content.trim() && (
+          <Card
+            className={cn(
+              "bg-primary text-primary-foreground relative px-4 py-3",
+              isStreaming && "animate-pulse",
+            )}
+          >
+            <div className="text-sm leading-relaxed break-words">
+              <div className="whitespace-pre-wrap">
+                {message.content}
+                {isStreaming && (
+                  <span className="ml-1 inline-block h-4 w-1 animate-pulse bg-current" />
+                )}
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        )}
 
         {/* Bottom action buttons and timestamp */}
         <div className="mt-1 flex w-full items-center justify-between px-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">

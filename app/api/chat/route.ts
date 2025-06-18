@@ -30,7 +30,7 @@ const chatRequestSchema = z.object({
         url: z.string(),
         size: z.number(),
         mime_type: z.string(),
-        extractedText: z.string().optional(),
+        extractedText: z.string().nullable().optional(),
       }),
     )
     .optional(),
@@ -205,47 +205,96 @@ export async function POST(req: NextRequest) {
         content: msg.content,
       })),
       // Add the new user message with enhanced content (including attachments)
-      ...normalizedMessages
-        .filter(
-          (msg) =>
-            msg.role === "user" &&
-            !existingMessages.some(
-              (existing) =>
-                existing.role === "user" && existing.content === msg.content,
-            ),
-        )
-        .map((msg) => ({
-          role: msg.role,
-          content:
-            msg.role === "user" &&
-            messages.length > 0 &&
-            attachments &&
-            attachments.length > 0
-              ? (() => {
-                  // Use enhanced content for the last user message if it has attachments
-                  const lastMessage =
-                    normalizedMessages[normalizedMessages.length - 1];
-                  if (lastMessage && lastMessage.content === msg.content) {
-                    // This is the last message with attachments, use enhanced content
-                    const attachmentInfo = attachments
-                      .map((att) => {
-                        if (att.type === "image") {
-                          return `[Image: ${att.name} (${att.mime_type})]`;
-                        } else {
-                          if (att.extractedText) {
-                            return `The user has uploaded a document "${att.name}" with the following content:\n\n${att.extractedText}\n\nPlease analyze this content and answer any questions about it.`;
-                          } else {
-                            return `[Document: ${att.name} (${att.mime_type})] - No text content available`;
-                          }
-                        }
-                      })
-                      .join("\n\n");
-                    return `${msg.content}\n\nAttachments:\n${attachmentInfo}`;
+      ...(await Promise.all(
+        normalizedMessages
+          .filter(
+            (msg) =>
+              msg.role === "user" &&
+              !existingMessages.some(
+                (existing) =>
+                  existing.role === "user" && existing.content === msg.content,
+              ),
+          )
+          .map(async (msg) => {
+            // Check if this is the last message with attachments
+            const lastMessage =
+              normalizedMessages[normalizedMessages.length - 1];
+            const hasAttachments =
+              msg.role === "user" &&
+              messages.length > 0 &&
+              attachments &&
+              attachments.length > 0 &&
+              lastMessage &&
+              lastMessage.content === msg.content;
+
+            if (!hasAttachments) {
+              return {
+                role: msg.role,
+                content: msg.content,
+              };
+            }
+
+            // Process attachments for AI vision
+            const processedContent = [];
+
+            // Add the text content first
+            if (msg.content.trim()) {
+              processedContent.push({
+                type: "text",
+                text: msg.content,
+              });
+            }
+
+            // Process each attachment
+            for (const att of attachments) {
+              if (att.type === "image") {
+                try {
+                  // Fetch the image and convert to base64
+                  const response = await fetch(att.url);
+                  if (response.ok) {
+                    const arrayBuffer = await response.arrayBuffer();
+                    const base64 = Buffer.from(arrayBuffer).toString("base64");
+
+                    processedContent.push({
+                      type: "image",
+                      image: `data:${att.mime_type};base64,${base64}`,
+                    });
+                  } else {
+                    // Fallback to text description if image fetch fails
+                    processedContent.push({
+                      type: "text",
+                      text: `[Image: ${att.name} - Unable to load image data]`,
+                    });
                   }
-                  return msg.content;
-                })()
-              : msg.content,
-        })),
+                } catch (error) {
+                  console.error("Error processing image attachment:", error);
+                  processedContent.push({
+                    type: "text",
+                    text: `[Image: ${att.name} - Error processing image]`,
+                  });
+                }
+              } else {
+                // Handle document attachments
+                if (att.extractedText) {
+                  processedContent.push({
+                    type: "text",
+                    text: `The user has uploaded a document "${att.name}" with the following content:\n\n${att.extractedText}\n\nPlease analyze this content and answer any questions about it.`,
+                  });
+                } else {
+                  processedContent.push({
+                    type: "text",
+                    text: `[Document: ${att.name} (${att.mime_type})] - No text content available`,
+                  });
+                }
+              }
+            }
+
+            return {
+              role: msg.role,
+              content: processedContent,
+            };
+          }),
+      )),
     ];
 
     console.log("All messages for AI context:", allMessages);
@@ -357,7 +406,7 @@ async function saveMessageToDatabase(
       url: string;
       size: number;
       mime_type: string;
-      extractedText?: string;
+      extractedText?: string | null;
     }>;
   },
 ) {

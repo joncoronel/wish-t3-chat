@@ -16,6 +16,7 @@ interface FileDropZoneProps {
   multiple?: boolean;
   className?: string;
   disabled?: boolean;
+  isLoading?: boolean;
 }
 
 export function FileDropZone({
@@ -26,6 +27,7 @@ export function FileDropZone({
   multiple = true,
   className,
   disabled = false,
+  isLoading = false,
 }: FileDropZoneProps) {
   const [state, actions] = useFileUpload({
     accept,
@@ -86,17 +88,25 @@ export function FileDropZone({
       >
         <div className="p-8 text-center">
           <div className="bg-muted mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-            <Upload
-              className={cn(
-                "h-6 w-6",
-                isDragging ? "text-primary" : "text-muted-foreground",
-              )}
-            />
+            {isLoading ? (
+              <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
+            ) : (
+              <Upload
+                className={cn(
+                  "h-6 w-6",
+                  isDragging ? "text-primary" : "text-muted-foreground",
+                )}
+              />
+            )}
           </div>
 
           <div className="mt-4">
             <p className="text-sm font-medium">
-              {isDragging ? "Drop files here" : "Upload files"}
+              {isLoading
+                ? "Uploading files..."
+                : isDragging
+                  ? "Drop files here"
+                  : "Upload files"}
             </p>
             <p className="text-muted-foreground mt-1 text-xs">
               {multiple ? `Up to ${maxFiles} files` : "Single file"} • Max{" "}

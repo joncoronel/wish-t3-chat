@@ -152,14 +152,26 @@ export function ChatInput({
       <div className="w-full max-w-3xl">
         <div className="bg-background overflow-hidden rounded-2xl border shadow-lg">
           {/* Attachments area */}
-          {attachments.length > 0 && (
+          {(attachments.length > 0 || isUploading) && (
             <div className="border-b px-4 pt-3">
-              <AttachmentList
-                attachments={attachments}
-                onRemove={handleRemoveAttachment}
-                showRemove={true}
-                className="pb-2"
-              />
+              {attachments.length > 0 && (
+                <AttachmentList
+                  attachments={attachments}
+                  onRemove={handleRemoveAttachment}
+                  showRemove={true}
+                  className="pb-2"
+                />
+              )}
+              {isUploading && (
+                <div className="flex items-center gap-2 pb-2">
+                  <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-lg">
+                    <div className="border-primary h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
+                  </div>
+                  <span className="text-muted-foreground text-sm">
+                    Uploading files...
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
@@ -171,7 +183,7 @@ export function ChatInput({
                 value={message}
                 onChange={handleTextareaChange}
                 onKeyDown={handleKeyDown}
-                placeholder={placeholder}
+                placeholder={isUploading ? "Uploading files..." : placeholder}
                 disabled={disabled || isUploading}
                 className="placeholder:text-muted-foreground max-h-40 min-h-[3rem] resize-none overflow-y-auto border-0 bg-transparent p-0 text-base shadow-none outline-none focus:border-0 focus:shadow-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 rows={1}
@@ -221,9 +233,13 @@ export function ChatInput({
                     size="sm"
                     className="h-8 w-8 rounded-full p-0"
                     disabled={disabled || isStreaming || isUploading}
-                    title="Attach file"
+                    title={isUploading ? "Uploading..." : "Attach file"}
                   >
-                    <Paperclip className="h-4 w-4" />
+                    {isUploading ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    ) : (
+                      <Paperclip className="h-4 w-4" />
+                    )}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-md">
@@ -233,6 +249,7 @@ export function ChatInput({
                   <FileDropZone
                     onFilesSelected={handleFilesSelected}
                     disabled={isUploading}
+                    isLoading={isUploading}
                     maxFiles={5}
                   />
                 </DialogContent>
