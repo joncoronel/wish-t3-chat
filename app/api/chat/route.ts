@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { generateConversationTitle } from "@/lib/utils";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
+import { getUser } from "@/lib/auth";
 
 // Request schema validation
 const chatRequestSchema = z.object({
@@ -43,14 +44,11 @@ export async function POST(req: NextRequest) {
 
     // Get authenticated user
     const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    const user = await getUser();
 
-    console.log("User:", user?.id, "Auth error:", authError);
+    console.log("User:", user?.id);
 
-    if (authError || !user) {
+    if (!user) {
       return new Response("Unauthorized", { status: 401 });
     }
 
