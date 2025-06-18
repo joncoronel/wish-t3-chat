@@ -162,16 +162,6 @@ export function ChatInput({
                   className="pb-2"
                 />
               )}
-              {isUploading && (
-                <div className="flex items-center gap-2 pb-2">
-                  <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-lg">
-                    <div className="border-primary h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
-                  </div>
-                  <span className="text-muted-foreground text-sm">
-                    Uploading files...
-                  </span>
-                </div>
-              )}
             </div>
           )}
 
@@ -235,11 +225,7 @@ export function ChatInput({
                     disabled={disabled || isStreaming || isUploading}
                     title={isUploading ? "Uploading..." : "Attach file"}
                   >
-                    {isUploading ? (
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    ) : (
-                      <Paperclip className="h-4 w-4" />
-                    )}
+                    <Paperclip className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-md">
