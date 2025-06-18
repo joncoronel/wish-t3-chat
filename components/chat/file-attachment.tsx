@@ -91,12 +91,14 @@ export function FileAttachment({
     if (isImage && !imageError) {
       return (
         <div className="group relative">
-          <img
-            src={attachment.url}
-            alt={attachment.name}
-            className="max-h-64 max-w-sm rounded-md object-cover"
-            onError={() => setImageError(true)}
-          />
+          <div className="bg-muted h-32 w-32 overflow-hidden rounded-md">
+            <img
+              src={attachment.url}
+              alt={attachment.name}
+              className="h-full w-full object-cover"
+              onError={() => setImageError(true)}
+            />
+          </div>
           {/* Remove button for images when in attachment list */}
           {showRemove && onRemove && (
             <Button
@@ -109,12 +111,15 @@ export function FileAttachment({
               <X className="h-3 w-3" />
             </Button>
           )}
-          <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-md bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="absolute inset-0 flex items-center justify-center gap-1 rounded-md bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="secondary" size="sm">
-                  <Eye className="mr-1 h-4 w-4" />
-                  View
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                >
+                  <Eye className="h-3 w-3" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-4xl">
@@ -130,9 +135,13 @@ export function FileAttachment({
                 </div>
               </DialogContent>
             </Dialog>
-            <Button variant="secondary" size="sm" onClick={handleDownload}>
-              <Download className="mr-1 h-4 w-4" />
-              Download
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={handleDownload}
+            >
+              <Download className="h-3 w-3" />
             </Button>
           </div>
         </div>

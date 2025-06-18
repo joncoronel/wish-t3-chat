@@ -351,7 +351,7 @@ export const MessageComponent = memo(function MessageComponent({
         )}
 
         {/* Bottom action buttons and timestamp */}
-        <div className="mt-1 flex w-full items-center justify-between px-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        <div className="mt-1 flex w-full items-center justify-end gap-2 px-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           <div className="flex gap-1">
             <Button
               variant="ghost"
