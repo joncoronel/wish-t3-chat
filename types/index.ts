@@ -69,6 +69,7 @@ export interface ChatAttachment {
   url: string;
   size: number;
   mime_type: string;
+  extractedText?: string;
 }
 
 export interface ChatSettings {

@@ -54,6 +54,11 @@ export function ChatMessages({
             const isDBMessage =
               "created_at" in message && typeof message.created_at === "string";
 
+            // Check for experimental_attachments from useChat hook
+            const hasExperimentalAttachments =
+              "experimental_attachments" in message &&
+              message.experimental_attachments;
+
             return (
               <MessageComponent
                 key={message.id}
@@ -77,6 +82,11 @@ export function ChatMessages({
                   attachments: isDBMessage
                     ? (message as DBMessage).attachments
                     : null,
+                  // Add experimental_attachments for useChat messages
+                  experimental_attachments: hasExperimentalAttachments
+                    ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (message as any).experimental_attachments
+                    : undefined,
                 }}
                 isStreaming={
                   isStreaming && index === displayMessages.length - 1

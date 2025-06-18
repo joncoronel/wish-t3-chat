@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useChat } from "ai/react";
 
 import {
@@ -18,6 +18,22 @@ import { toast } from "sonner";
 import { cn, generateConversationTitle } from "@/lib/utils";
 import { mutate } from "swr";
 import { v4 as uuidv4 } from "uuid";
+import type { ChatAttachment } from "@/types";
+
+// Helper function to convert database attachments to ChatAttachment format
+function convertDbAttachmentsToChat(
+  attachments: Record<string, unknown>[] | null,
+): ChatAttachment[] | undefined {
+  if (!attachments) return undefined;
+  return attachments.map((att) => ({
+    id: att.id as string,
+    type: att.type as "image" | "document",
+    name: att.name as string,
+    url: att.url as string,
+    size: att.size as number,
+    mime_type: att.mime_type as string,
+  }));
+}
 
 interface ChatInterfaceProps {
   className?: string;
@@ -38,21 +54,21 @@ export function ChatInterface({
   // Debug component lifecycle - will be added after handleSendMessage
 
   const [selectedCategory, setSelectedCategory] = useState<
-    keyof typeof categoryPrompts | "default"
+    "default" | "create" | "explore" | "code" | "learn"
   >("default");
 
   // Track the active conversation ID for new chats
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
-  >(null);
+  >(chatId || null);
 
   // Current conversation ID for this chat session
   const currentConversationId = chatId || activeConversationId;
 
   // Create a stable key for the useChat hook to ensure proper isolation
-  const chatKey = currentConversationId || `new-chat-${userId}`;
+  const chatKey = currentConversationId || "new-chat";
 
-  // Define prompts for each category
+  // Welcome screen categories and prompts
   const categoryPrompts = {
     default: [
       "How does AI work?",
@@ -87,14 +103,23 @@ export function ChatInterface({
   } as const;
 
   // Use SWR to get conversation and messages (only when we have a chatId)
-  const { data: conversation, isLoading: isLoadingConversation } =
-    useConversation(chatId || "", userId || "");
+  const { isLoading: isLoadingConversation } = useConversation(
+    chatId || "",
+    userId || "",
+  );
   const { data: messages = [], isLoading: isLoadingMessages } = useMessages(
     chatId || "",
   );
 
   // Get all conversations for welcome screen optimistic updates
   const { data: allConversations = [] } = useConversations(userId || "");
+
+  // Ensure we sync the active conversation ID when the URL changes
+  useEffect(() => {
+    if (chatId !== activeConversationId) {
+      setActiveConversationId(chatId || null);
+    }
+  }, [chatId, activeConversationId]);
 
   const {
     messages: chatMessages,
@@ -109,6 +134,7 @@ export function ChatInterface({
       id: msg.id,
       role: msg.role as "user" | "assistant" | "system",
       content: msg.content,
+      experimental_attachments: convertDbAttachmentsToChat(msg.attachments),
     })),
     body: {
       model: selectedModel,
@@ -117,9 +143,7 @@ export function ChatInterface({
       conversationId: currentConversationId,
     },
 
-    onFinish: async (message) => {
-      console.log("Message finished for chat:", chatKey, message);
-
+    onFinish: async () => {
       if (userId && currentConversationId) {
         // Clear loading state when AI response is complete
         setLoading(currentConversationId, false);
@@ -130,7 +154,7 @@ export function ChatInterface({
       }
     },
     onError: (error) => {
-      console.error("Chat error for chat:", chatKey, error);
+      console.error("Chat error:", error);
       toast.error("Failed to send message: " + error.message);
 
       // Clear loading state on error
@@ -143,12 +167,12 @@ export function ChatInterface({
   // Sync database messages with chat messages when they change
   useEffect(() => {
     if (messages.length > 0 && chatMessages.length === 0) {
-      console.log("Syncing database messages to chat hook:", messages.length);
       setMessages(
         messages.map((msg) => ({
           id: msg.id,
           role: msg.role as "user" | "assistant" | "system",
           content: msg.content,
+          experimental_attachments: convertDbAttachmentsToChat(msg.attachments),
         })),
       );
     }
@@ -159,64 +183,24 @@ export function ChatInterface({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, chatMessages]);
 
-  // Log when chatMessages change to track when they disappear
-  useEffect(() => {
-    console.log("ChatMessages changed:", {
-      count: chatMessages.length,
-      currentConversationId,
-      chatId,
-      activeConversationId,
-      messages: chatMessages.map((m) => ({
-        role: m.role,
-        content: m.content.slice(0, 30),
-      })),
-    });
-  }, [chatMessages, currentConversationId, chatId, activeConversationId]);
-
   // Combined messages for display
   // Use chatMessages as the source of truth since we sync database messages into it
   const displayMessages = chatMessages;
 
-  // Debug logging for troubleshooting
-  console.log("Chat state debug:", {
-    chatId,
-    activeConversationId,
-    currentConversationId,
-    conversation: !!conversation,
-    messagesFromDB: messages.length,
-    chatMessages: chatMessages.length,
-    displayMessages: displayMessages.length,
-    isLoadingConversation,
-    isLoadingMessages,
-    messagesDetails: messages.map((m) => ({
-      role: m.role,
-      content: m.content.slice(0, 50),
-    })),
-    chatMessagesDetails: chatMessages.map((m) => ({
-      role: m.role,
-      content: m.content.slice(0, 50),
-    })),
-  });
-
   const handleSendMessage = useCallback(
-    async (messageContent: string, fromPendingMessage = false) => {
+    async (
+      messageContent: string,
+      attachments?: ChatAttachment[],
+      fromPendingMessage = false,
+    ) => {
       if (!userId) {
         toast.error("Please sign in to send messages");
         return;
       }
 
-      console.log(
-        "Sending message:",
-        messageContent,
-        "fromPending:",
-        fromPendingMessage,
-      );
-
       try {
         // If this is a new chat (no chatId)
         if (!chatId) {
-          console.log("Starting new conversation...");
-
           // If this is from a pending message, we should have a chatId from the query parameter
           if (fromPendingMessage && chatId) {
             setActiveConversationId(chatId);
@@ -225,10 +209,19 @@ export function ChatInterface({
             setLoading(chatId, true);
 
             // Send the message - the API will create the conversation if it doesn't exist
-            await append({
-              role: "user",
-              content: messageContent,
-            });
+            await append(
+              {
+                role: "user",
+                content: messageContent,
+                experimental_attachments: attachments,
+              },
+              {
+                body: {
+                  attachments,
+                },
+              },
+            );
+
             return;
           }
 
@@ -267,10 +260,10 @@ export function ChatInterface({
           // Navigate to the new conversation
           navigateToChat(conversationId);
 
-          // Store the message for when the component remounts (same as input wrapper)
+          // Store the message and attachments for when the component remounts
           sessionStorage.setItem(
             `pendingMessage-${conversationId}`,
-            messageContent,
+            JSON.stringify({ message: messageContent, attachments }),
           );
 
           // Don't immediately revalidate - let the onFinish callback handle it
@@ -298,10 +291,18 @@ export function ChatInterface({
 
             mutate(
               `conversations-${userId}`,
-              append({
-                role: "user",
-                content: messageContent,
-              }),
+              append(
+                {
+                  role: "user",
+                  content: messageContent,
+                  experimental_attachments: attachments,
+                },
+                {
+                  body: {
+                    attachments,
+                  },
+                },
+              ),
               {
                 revalidate: true,
                 optimisticData: updatedConversations,
@@ -319,30 +320,34 @@ export function ChatInterface({
     [userId, chatId, append, navigateToChat, setActiveConversationId],
   );
 
-  // Debug component lifecycle and handle pending messages
+  // Handle pending messages and listen for chat events
   useEffect(() => {
-    console.log("ChatInterface mounted with chatId:", chatId);
-
     // Check for pending message from sessionStorage
     if (chatId) {
-      const pendingMessage = sessionStorage.getItem(`pendingMessage-${chatId}`);
-      if (pendingMessage) {
-        console.log("Found pending message:", pendingMessage);
+      const pendingData = sessionStorage.getItem(`pendingMessage-${chatId}`);
+      if (pendingData) {
         sessionStorage.removeItem(`pendingMessage-${chatId}`);
 
-        // Send the pending message after a brief delay to ensure component is ready
-        setTimeout(() => {
-          handleSendMessage(pendingMessage, true);
-        }, 100);
+        try {
+          // Try to parse as JSON (new format with attachments)
+          const parsed = JSON.parse(pendingData);
+          setTimeout(() => {
+            handleSendMessage(parsed.message, parsed.attachments, true);
+          }, 100);
+        } catch {
+          // Fallback to old format (just string message)
+          setTimeout(() => {
+            handleSendMessage(pendingData, undefined, true);
+          }, 100);
+        }
       }
     }
 
     // Listen for messages from ChatInputWrapper for existing chats
     const handleChatMessage = (event: CustomEvent) => {
-      const { chatId: eventChatId, message } = event.detail;
+      const { chatId: eventChatId, message, attachments } = event.detail;
       if (eventChatId === chatId) {
-        console.log("Received message from input wrapper:", message);
-        handleSendMessage(message);
+        handleSendMessage(message, attachments);
       }
     };
 
@@ -352,7 +357,6 @@ export function ChatInterface({
     );
 
     return () => {
-      console.log("ChatInterface unmounting, chatId was:", chatId);
       window.removeEventListener(
         "chat-send-message",
         handleChatMessage as EventListener,

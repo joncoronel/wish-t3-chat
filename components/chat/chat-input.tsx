@@ -3,13 +3,25 @@
 import { useState, useRef, KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Send, Square, Paperclip } from "lucide-react";
 import { ModelSelector } from "./model-selector";
+import { FileDropZone } from "./file-drop-zone";
+import { AttachmentList } from "./file-attachment";
 import { useGlobalModel } from "@/hooks/use-global-model";
+
 import { cn } from "@/lib/utils";
+import type { ChatAttachment } from "@/types";
+import type { FileWithPreview } from "@/hooks/use-file-upload";
 
 interface ChatInputProps {
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, attachments?: ChatAttachment[]) => void;
   onStopStreaming?: () => void;
   isStreaming?: boolean;
   disabled?: boolean;
@@ -26,20 +38,91 @@ export function ChatInput({
   className,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
+  const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
+  const [showAttachDialog, setShowAttachDialog] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { selectedModel, selectModel } = useGlobalModel();
 
   const handleSubmit = () => {
     const trimmedMessage = message.trim();
-    if (trimmedMessage && !disabled && !isStreaming) {
-      onSendMessage(trimmedMessage);
+    if (
+      (trimmedMessage || attachments.length > 0) &&
+      !disabled &&
+      !isStreaming &&
+      !isUploading
+    ) {
+      console.log("Sending message with attachments:", attachments);
+      attachments.forEach((att, index) => {
+        console.log(`Attachment ${index}:`, {
+          name: att.name,
+          type: att.type,
+          hasExtractedText: !!att.extractedText,
+          extractedTextLength: att.extractedText?.length,
+        });
+      });
+
+      onSendMessage(
+        trimmedMessage,
+        attachments.length > 0 ? attachments : undefined,
+      );
       setMessage("");
+      setAttachments([]);
 
       // Reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
       }
     }
+  };
+
+  const handleFilesSelected = async (files: FileWithPreview[]) => {
+    if (files.length === 0) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      files.forEach((fileWrapper) => {
+        if (fileWrapper.file instanceof File) {
+          formData.append("files", fileWrapper.file);
+        }
+      });
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const result = await response.json();
+      console.log("Upload response:", result);
+      if (result.success) {
+        console.log("Setting attachments:", result.files);
+        result.files.forEach((file: ChatAttachment, index: number) => {
+          console.log(`File ${index}:`, {
+            name: file.name,
+            type: file.type,
+            hasExtractedText: !!file.extractedText,
+            extractedTextLength: file.extractedText?.length,
+            extractedTextPreview: file.extractedText?.substring(0, 100),
+          });
+        });
+        setAttachments((prev) => [...prev, ...result.files]);
+        setShowAttachDialog(false);
+      }
+    } catch (error) {
+      console.error("File upload error:", error);
+      // You could show a toast error here
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveAttachment = (attachmentId: string) => {
+    setAttachments((prev) => prev.filter((att) => att.id !== attachmentId));
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -68,6 +151,18 @@ export function ChatInput({
     <div className={cn("flex justify-center p-4 pb-6", className)}>
       <div className="w-full max-w-3xl">
         <div className="bg-background overflow-hidden rounded-2xl border shadow-lg">
+          {/* Attachments area */}
+          {attachments.length > 0 && (
+            <div className="border-b px-4 pt-3">
+              <AttachmentList
+                attachments={attachments}
+                onRemove={handleRemoveAttachment}
+                showRemove={true}
+                className="pb-2"
+              />
+            </div>
+          )}
+
           {/* Message input area */}
           <div className="px-4 pt-3 pb-2">
             <div className="relative">
@@ -77,7 +172,7 @@ export function ChatInput({
                 onChange={handleTextareaChange}
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
-                disabled={disabled}
+                disabled={disabled || isUploading}
                 className="placeholder:text-muted-foreground max-h-40 min-h-[3rem] resize-none overflow-y-auto border-0 bg-transparent p-0 text-base shadow-none outline-none focus:border-0 focus:shadow-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 rows={1}
               />
@@ -116,15 +211,32 @@ export function ChatInput({
               </Button>
 
               {/* Attachment button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 rounded-full p-0"
-                disabled={disabled || isStreaming}
-                title="Attach file"
+              <Dialog
+                open={showAttachDialog}
+                onOpenChange={setShowAttachDialog}
               >
-                <Paperclip className="h-4 w-4" />
-              </Button>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 rounded-full p-0"
+                    disabled={disabled || isStreaming || isUploading}
+                    title="Attach file"
+                  >
+                    <Paperclip className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Upload Files</DialogTitle>
+                  </DialogHeader>
+                  <FileDropZone
+                    onFilesSelected={handleFilesSelected}
+                    disabled={isUploading}
+                    maxFiles={5}
+                  />
+                </DialogContent>
+              </Dialog>
             </div>
 
             {/* Send/Stop button */}
@@ -142,7 +254,11 @@ export function ChatInput({
               <Button
                 onClick={handleSubmit}
                 size="sm"
-                disabled={disabled || !message.trim()}
+                disabled={
+                  disabled ||
+                  (!message.trim() && attachments.length === 0) ||
+                  isUploading
+                }
                 className="bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground h-8 w-8 rounded-full p-0 shadow-sm transition-all duration-200 hover:shadow-md disabled:shadow-none"
                 title="Send message"
               >

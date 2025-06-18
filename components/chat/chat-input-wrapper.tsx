@@ -9,7 +9,7 @@ import { generateConversationTitle } from "@/lib/utils";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { v4 as uuidv4 } from "uuid";
-import type { Conversation } from "@/types";
+import type { Conversation, ChatAttachment } from "@/types";
 
 interface ChatInputWrapperProps {
   userId: string;
@@ -21,6 +21,7 @@ export const CHAT_MESSAGE_EVENT = "chat-send-message";
 export interface ChatMessageEventDetail {
   chatId: string;
   message: string;
+  attachments?: ChatAttachment[];
 }
 
 export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
@@ -31,7 +32,10 @@ export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
   // Get current conversations for optimistic updates
   const { data: allConversations = [] } = useConversations(userId || "");
 
-  const handleSendMessage = async (messageContent: string) => {
+  const handleSendMessage = async (
+    messageContent: string,
+    attachments?: ChatAttachment[],
+  ) => {
     if (!userId) {
       toast.error("Please sign in to send messages");
       return;
@@ -78,17 +82,17 @@ export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
         // Navigate to new conversation with the initial message
         navigateToChat(conversationId);
 
-        // Store the message for the ChatInterface to pick up
+        // Store the message and attachments for the ChatInterface to pick up
         sessionStorage.setItem(
           `pendingMessage-${conversationId}`,
-          messageContent,
+          JSON.stringify({ message: messageContent, attachments }),
         );
       } else {
         // For existing chats, dispatch a custom event for the ChatInterface to handle
         const event = new CustomEvent<ChatMessageEventDetail>(
           CHAT_MESSAGE_EVENT,
           {
-            detail: { chatId, message: messageContent },
+            detail: { chatId, message: messageContent, attachments },
           },
         );
         window.dispatchEvent(event);

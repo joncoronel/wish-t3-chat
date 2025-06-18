@@ -21,6 +21,19 @@ const chatRequestSchema = z.object({
   temperature: z.number().min(0).max(2).optional().default(0.7),
   max_tokens: z.number().min(1).max(4096).optional().default(2048),
   conversationId: z.string().optional(),
+  attachments: z
+    .array(
+      z.object({
+        id: z.string(),
+        type: z.enum(["image", "document"]),
+        name: z.string(),
+        url: z.string(),
+        size: z.number(),
+        mime_type: z.string(),
+        extractedText: z.string().optional(),
+      }),
+    )
+    .optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -30,9 +43,18 @@ export async function POST(req: NextRequest) {
     // Parse and validate request
     const body = await req.json();
     console.log("Request body:", body);
+    console.log("Body attachments:", body.attachments);
 
-    const { messages, model, temperature, max_tokens, conversationId } =
-      chatRequestSchema.parse(body);
+    const {
+      messages,
+      model,
+      temperature,
+      max_tokens,
+      conversationId,
+      attachments,
+    } = chatRequestSchema.parse(body);
+
+    console.log("Parsed attachments:", attachments);
 
     console.log("Parsed params:", {
       messages,
@@ -152,11 +174,14 @@ export async function POST(req: NextRequest) {
     if (messages.length > 0) {
       const lastMessage = normalizedMessages[normalizedMessages.length - 1];
       if (lastMessage?.role === "user") {
+        // Save the original user message content to database (not the enhanced version)
+        // The enhanced version is only for AI context
         const { error: msgError } = await saveMessageToDatabase(supabase, {
           conversationId: validConversationId,
           role: "user",
-          content: lastMessage.content,
+          content: lastMessage.content, // Save original message, not enhanced
           userId: user.id,
+          attachments,
         });
 
         if (msgError) {
@@ -173,24 +198,61 @@ export async function POST(req: NextRequest) {
         role: "system" as const,
         content:
           existingConversation?.system_prompt ||
-          "You are a helpful AI assistant. You provide accurate, thoughtful, and detailed responses while maintaining context throughout the conversation. You can help with a wide variety of tasks including answering questions, writing, analysis, coding, and creative tasks.",
+          "You are a helpful AI assistant. You provide accurate, thoughtful, and detailed responses while maintaining context throughout the conversation. You can help with a wide variety of tasks including answering questions, writing, analysis, coding, and creative tasks. When users upload documents, the text content will be extracted and provided to you directly. You should analyze this content and answer questions about it as if you can read the document. Do not say you cannot access files when the content is provided to you in the message.",
       },
       ...existingMessages.map((msg) => ({
         role: msg.role,
         content: msg.content,
       })),
-      // Add the new user message if it's not already in the database
-      ...normalizedMessages.filter(
-        (msg) =>
-          msg.role === "user" &&
-          !existingMessages.some(
-            (existing) =>
-              existing.role === "user" && existing.content === msg.content,
-          ),
-      ),
+      // Add the new user message with enhanced content (including attachments)
+      ...normalizedMessages
+        .filter(
+          (msg) =>
+            msg.role === "user" &&
+            !existingMessages.some(
+              (existing) =>
+                existing.role === "user" && existing.content === msg.content,
+            ),
+        )
+        .map((msg) => ({
+          role: msg.role,
+          content:
+            msg.role === "user" &&
+            messages.length > 0 &&
+            attachments &&
+            attachments.length > 0
+              ? (() => {
+                  // Use enhanced content for the last user message if it has attachments
+                  const lastMessage =
+                    normalizedMessages[normalizedMessages.length - 1];
+                  if (lastMessage && lastMessage.content === msg.content) {
+                    // This is the last message with attachments, use enhanced content
+                    const attachmentInfo = attachments
+                      .map((att) => {
+                        if (att.type === "image") {
+                          return `[Image: ${att.name} (${att.mime_type})]`;
+                        } else {
+                          if (att.extractedText) {
+                            return `The user has uploaded a document "${att.name}" with the following content:\n\n${att.extractedText}\n\nPlease analyze this content and answer any questions about it.`;
+                          } else {
+                            return `[Document: ${att.name} (${att.mime_type})] - No text content available`;
+                          }
+                        }
+                      })
+                      .join("\n\n");
+                    return `${msg.content}\n\nAttachments:\n${attachmentInfo}`;
+                  }
+                  return msg.content;
+                })()
+              : msg.content,
+        })),
     ];
 
     console.log("All messages for AI context:", allMessages);
+    console.log(
+      "Last message content being sent to AI:",
+      allMessages[allMessages.length - 1]?.content,
+    );
     const coreMessages = convertToCoreMessages(allMessages);
 
     console.log("Core messages:", coreMessages);
@@ -281,12 +343,22 @@ async function saveMessageToDatabase(
     content,
     userId,
     usage,
+    attachments,
   }: {
     conversationId: string;
     role: "user" | "assistant";
     content: string;
     userId: string;
     usage?: Record<string, unknown>;
+    attachments?: Array<{
+      id: string;
+      type: "image" | "document";
+      name: string;
+      url: string;
+      size: number;
+      mime_type: string;
+      extractedText?: string;
+    }>;
   },
 ) {
   try {
@@ -297,6 +369,7 @@ async function saveMessageToDatabase(
       role,
       content,
       metadata: usage ? { usage } : null,
+      attachments: attachments || null,
       created_at: new Date().toISOString(),
     });
 
