@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🤖 Wish T3 Chat - T3 Chat Cloneathon Entry
 
-## Getting Started
+A modern AI chat application built for the [T3 Chat Cloneathon](https://cloneathon.t3.chat/) with multi-provider LLM support and file attachments.
 
-First, run the development server:
+## 🎯 For Judges - Quick Test Guide
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### 1. **Try the App**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Visit: [Live Demo](#) _(add your deployment URL)_
+- Sign up with Google/GitHub or create an account
+- You'll be redirected to the chat interface
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. **Add Your API Keys** (Recommended)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Click **Settings** in the top-right menu
+- Add your **OpenRouter** key for access to 200+ models
+- Or add individual provider keys (OpenAI, Anthropic, Google)
+- Keys are stored locally in your browser (never on our servers)
 
-## Learn More
+**Get API Keys:**
 
-To learn more about Next.js, take a look at the following resources:
+- OpenRouter: https://openrouter.ai/settings/keys ⭐ _Recommended - gives access to all models_
+- OpenAI: https://platform.openai.com/api-keys
+- Anthropic: https://console.anthropic.com/settings/keys
+- Google AI: https://aistudio.google.com/app/apikey
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. **Test Features**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Chat**: Select any model and start chatting
+- **File Upload**: Drag images/PDFs into chat or click the paperclip
+- **Code**: Ask for code and see syntax highlighting
+- **Model Switching**: Try different providers and models
+- **Themes**: Toggle dark/light mode
 
-## Deploy on Vercel
+## ✅ Competition Requirements Met
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Core Requirements
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **✅ Chat with Various LLMs** - 40+ models across OpenAI, Anthropic, Google, OpenRouter
+- **✅ Authentication & Sync** - Supabase auth with conversation history
+- **✅ Browser Friendly** - Responsive web app
+- **✅ Easy to Try** - One-click BYOK setup
+
+### Bonus Features
+
+- **✅ Attachment Support** - Images (JPEG, PNG, GIF, WebP) and PDFs with text extraction
+- **✅ Syntax Highlighting** - Beautiful code formatting with 30+ languages
+- **✅ Bring Your Own Key** - Secure localStorage-based API key management
+- **✅ Resumable Streams** - Reliable streaming with the AI SDK
+- **✅ Chat Sharing** - Database schema ready for sharing (not UI implemented)
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 15 with TypeScript
+- **Database**: Supabase (auth + data storage)
+- **AI**: AI SDK with OpenAI, Anthropic, Google, OpenRouter
+- **UI**: Tailwind CSS + Radix UI components
+- **Syntax Highlighting**: Shiki with GitHub themes
+
+## 📱 Key Features
+
+- **Multi-Provider AI**: Seamlessly switch between different LLM providers
+- **Smart File Handling**: Auto-compress images, extract text from PDFs
+- **BYOK Security**: API keys never leave your browser
+- **Professional UI**: Clean, accessible design with dark/light themes
+- **Real-time Streaming**: Smooth AI response streaming
+
+---
+
+**Built for the T3 Chat Cloneathon** | **[Competition Info](https://cloneathon.t3.chat/)**
