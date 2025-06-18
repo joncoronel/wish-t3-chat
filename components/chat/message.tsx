@@ -1,13 +1,13 @@
 "use client";
 
 import { memo } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Copy, User, Bot, Edit2, Trash2 } from "lucide-react";
+import { Copy, Edit2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Message } from "@/types";
 import { cn } from "@/lib/utils";
+import { AIResponse } from "@/components/chat/ai-response";
 
 interface MessageComponentProps {
   message: Message;
@@ -24,8 +24,8 @@ export const MessageComponent = memo(function MessageComponent({
   onDelete,
   className,
 }: MessageComponentProps) {
-  const isUser = message.role === "user";
   const isSystem = message.role === "system";
+  const isAssistant = message.role === "assistant";
 
   const handleCopy = async () => {
     try {
@@ -46,70 +46,101 @@ export const MessageComponent = memo(function MessageComponent({
     );
   }
 
-  return (
-    <div
-      className={cn(
-        "group flex gap-3 py-4",
-        isUser ? "justify-end" : "justify-start",
-        className,
-      )}
-    >
-      {!isUser && (
-        <Avatar className="h-8 w-8 shrink-0">
-          <AvatarFallback className="bg-primary/10 text-primary">
-            <Bot className="h-4 w-4" />
-          </AvatarFallback>
-        </Avatar>
-      )}
-
-      <div
-        className={cn(
-          "flex max-w-[70%] flex-col",
-          isUser ? "items-end" : "items-start",
-        )}
-      >
-        <Card
-          className={cn(
-            "relative px-4 py-3",
-            isUser
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted border-border",
-            isStreaming && "animate-pulse",
-          )}
-        >
-          <div className="text-sm leading-relaxed break-words whitespace-pre-wrap">
-            {message.content}
-            {isStreaming && (
-              <span className="ml-1 inline-block h-4 w-1 animate-pulse bg-current" />
-            )}
+  // AI Assistant messages - no bubble, no avatar
+  if (isAssistant) {
+    return (
+      <div className={cn("group flex py-4", className)}>
+        <div className="flex w-full flex-col">
+          <div className="text-sm leading-relaxed">
+            <AIResponse className="prose dark:prose-invert prose-sm">
+              {message.content + (isStreaming ? " ●" : "")}
+            </AIResponse>
           </div>
 
-          {/* Action buttons - show on hover */}
-          <div
-            className={cn(
-              "absolute -top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100",
-              isUser ? "-left-16" : "-right-16",
-            )}
-          >
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0"
-              onClick={handleCopy}
-              title="Copy message"
-            >
-              <Copy className="h-3 w-3" />
-            </Button>
+          {/* Bottom action buttons and timestamp */}
+          <div className="mt-3 flex items-center gap-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <div className="text-muted-foreground text-xs">
+              {new Date(message.created_at).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </div>
 
-            {isUser && onEdit && (
+            <div className="flex gap-1">
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0"
+                className="h-7 px-2 text-xs"
+                onClick={handleCopy}
+                title="Copy message"
+              >
+                <Copy className="mr-1 h-3 w-3" />
+                Copy
+              </Button>
+
+              {onDelete && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:bg-destructive/10 h-7 px-2 text-xs"
+                  onClick={() => onDelete(message.id)}
+                  title="Delete message"
+                >
+                  <Trash2 className="mr-1 h-3 w-3" />
+                  Delete
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // User messages - keep bubble, remove avatar
+  return (
+    <div className={cn("group flex justify-end gap-3 py-4", className)}>
+      <div className="flex max-w-[70%] flex-col items-end">
+        <Card
+          className={cn(
+            "bg-primary text-primary-foreground relative px-4 py-3",
+            isStreaming && "animate-pulse",
+          )}
+        >
+          <div className="text-sm leading-relaxed break-words">
+            <div className="whitespace-pre-wrap">
+              {message.content}
+              {isStreaming && (
+                <span className="ml-1 inline-block h-4 w-1 animate-pulse bg-current" />
+              )}
+            </div>
+          </div>
+        </Card>
+
+        {/* Bottom action buttons and timestamp */}
+        <div className="mt-1 flex w-full items-center justify-between px-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={handleCopy}
+              title="Copy message"
+            >
+              <Copy className="mr-1 h-3 w-3" />
+              Copy
+            </Button>
+
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs"
                 onClick={() => onEdit(message.id)}
                 title="Edit message"
               >
-                <Edit2 className="h-3 w-3" />
+                <Edit2 className="mr-1 h-3 w-3" />
+                Edit
               </Button>
             )}
 
@@ -117,37 +148,24 @@ export const MessageComponent = memo(function MessageComponent({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-destructive hover:bg-destructive/10 h-7 w-7 p-0"
+                className="text-destructive hover:bg-destructive/10 h-7 px-2 text-xs"
                 onClick={() => onDelete(message.id)}
                 title="Delete message"
               >
-                <Trash2 className="h-3 w-3" />
+                <Trash2 className="mr-1 h-3 w-3" />
+                Delete
               </Button>
             )}
           </div>
-        </Card>
 
-        {/* Timestamp */}
-        <div
-          className={cn(
-            "text-muted-foreground mt-1 px-1 text-xs",
-            isUser ? "text-right" : "text-left",
-          )}
-        >
-          {new Date(message.created_at).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+          <div className="text-muted-foreground text-xs">
+            {new Date(message.created_at).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </div>
         </div>
       </div>
-
-      {isUser && (
-        <Avatar className="h-8 w-8 shrink-0">
-          <AvatarFallback className="bg-primary/10 text-primary">
-            <User className="h-4 w-4" />
-          </AvatarFallback>
-        </Avatar>
-      )}
     </div>
   );
 });
