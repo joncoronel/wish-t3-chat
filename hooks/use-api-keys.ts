@@ -40,7 +40,7 @@ interface UseApiKeysProps {
 export function useApiKeys({ userId }: UseApiKeysProps) {
   const [decryptedApiKeys, setDecryptedApiKeys] = useAtom(decryptedApiKeysAtom);
   const [encryptionKey, setEncryptionKey] = useAtom(encryptionKeyAtom);
-  const [isDecrypting, setIsDecrypting] = useAtom(isDecryptingAtom);
+  const [, setIsDecrypting] = useAtom(isDecryptingAtom);
   const [hasApiKey] = useAtom(hasApiKeyAtom);
 
   // Use SWR to fetch encrypted API keys (with fallback from server-side pre-loading)
@@ -137,6 +137,10 @@ export function useApiKeys({ userId }: UseApiKeysProps) {
 
     decryptKeys();
   }, [encryptionKey, stableEncryptedApiKeys]);
+
+  // We're only loading if we don't have an encryption key
+  // Once we have the key, decryption is fast enough to not block UI
+  const isLoading = !encryptionKey;
 
   // Store API key function
   const storeApiKey = useCallback(
@@ -270,7 +274,7 @@ export function useApiKeys({ userId }: UseApiKeysProps) {
 
   return {
     apiKeys: decryptedApiKeys,
-    isLoading: isDecrypting || !encryptionKey,
+    isLoading,
     storeApiKey,
     deleteApiKey,
     updateApiKeys,
