@@ -195,102 +195,94 @@ export async function POST(req: NextRequest) {
           existingConversation?.system_prompt ||
           "You are a helpful AI assistant. You provide accurate, thoughtful, and detailed responses while maintaining context throughout the conversation. You can help with a wide variety of tasks including answering questions, writing, analysis, coding, and creative tasks. When users upload documents, the text content will be extracted and provided to you directly. You should analyze this content and answer questions about it as if you can read the document. Do not say you cannot access files when the content is provided to you in the message.",
       },
-      ...existingMessages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-      // Add the new user message with enhanced content (including attachments)
-      ...(await Promise.all(
-        normalizedMessages
-          .filter(
-            (msg) =>
-              msg.role === "user" &&
-              !existingMessages.some(
-                (existing) =>
-                  existing.role === "user" && existing.content === msg.content,
-              ),
-          )
-          .map(async (msg) => {
-            // Check if this is the last message with attachments
-            const lastMessage =
-              normalizedMessages[normalizedMessages.length - 1];
-            const hasAttachments =
-              msg.role === "user" &&
-              messages.length > 0 &&
-              attachments &&
-              attachments.length > 0 &&
-              lastMessage &&
-              lastMessage.content === msg.content;
+      ...existingMessages
+        .filter((msg) => msg.content && msg.content.trim() !== "") // Filter out empty messages
+        .map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+    ];
 
-            if (!hasAttachments) {
-              return {
-                role: msg.role,
-                content: msg.content,
-              };
-            }
+    // Add the new user message (only the last user message from normalized messages)
+    const lastUserMessage = normalizedMessages
+      .slice()
+      .reverse()
+      .find(
+        (msg) =>
+          msg.role === "user" && msg.content && msg.content.trim() !== "",
+      );
 
-            // Process attachments for AI vision
-            const processedContent = [];
+    if (lastUserMessage) {
+      // Check if this is the last message with attachments
+      const hasAttachments = attachments && attachments.length > 0;
 
-            // Add the text content first
-            if (msg.content.trim()) {
+      if (!hasAttachments) {
+        allMessages.push({
+          role: lastUserMessage.role,
+          content: lastUserMessage.content,
+        });
+      } else {
+        // Process attachments for AI vision
+        const processedContent = [];
+
+        // Add the text content first
+        if (lastUserMessage.content.trim()) {
+          processedContent.push({
+            type: "text",
+            text: lastUserMessage.content,
+          });
+        }
+
+        // Process each attachment
+        for (const att of attachments) {
+          if (att.type === "image") {
+            try {
+              // Fetch the image and convert to base64
+              const response = await fetch(att.url);
+              if (response.ok) {
+                const arrayBuffer = await response.arrayBuffer();
+                const base64 = Buffer.from(arrayBuffer).toString("base64");
+
+                processedContent.push({
+                  type: "image",
+                  image: `data:${att.mime_type};base64,${base64}`,
+                });
+              } else {
+                // Fallback to text description if image fetch fails
+                processedContent.push({
+                  type: "text",
+                  text: `[Image: ${att.name} - Unable to load image data]`,
+                });
+              }
+            } catch (error) {
+              console.error("Error processing image attachment:", error);
               processedContent.push({
                 type: "text",
-                text: msg.content,
+                text: `[Image: ${att.name} - Error processing image]`,
               });
             }
-
-            // Process each attachment
-            for (const att of attachments) {
-              if (att.type === "image") {
-                try {
-                  // Fetch the image and convert to base64
-                  const response = await fetch(att.url);
-                  if (response.ok) {
-                    const arrayBuffer = await response.arrayBuffer();
-                    const base64 = Buffer.from(arrayBuffer).toString("base64");
-
-                    processedContent.push({
-                      type: "image",
-                      image: `data:${att.mime_type};base64,${base64}`,
-                    });
-                  } else {
-                    // Fallback to text description if image fetch fails
-                    processedContent.push({
-                      type: "text",
-                      text: `[Image: ${att.name} - Unable to load image data]`,
-                    });
-                  }
-                } catch (error) {
-                  console.error("Error processing image attachment:", error);
-                  processedContent.push({
-                    type: "text",
-                    text: `[Image: ${att.name} - Error processing image]`,
-                  });
-                }
-              } else {
-                // Handle document attachments
-                if (att.extractedText) {
-                  processedContent.push({
-                    type: "text",
-                    text: `The user has uploaded a document "${att.name}" with the following content:\n\n${att.extractedText}\n\nPlease analyze this content and answer any questions about it.`,
-                  });
-                } else {
-                  processedContent.push({
-                    type: "text",
-                    text: `[Document: ${att.name} (${att.mime_type})] - No text content available`,
-                  });
-                }
-              }
+          } else {
+            // Handle document attachments
+            if (att.extractedText) {
+              processedContent.push({
+                type: "text",
+                text: `The user has uploaded a document "${att.name}" with the following content:\n\n${att.extractedText}\n\nPlease analyze this content and answer any questions about it.`,
+              });
+            } else {
+              processedContent.push({
+                type: "text",
+                text: `[Document: ${att.name} (${att.mime_type})] - No text content available`,
+              });
             }
+          }
+        }
 
-            return {
-              role: msg.role,
-              content: processedContent,
-            };
-          }),
-      )),
-    ];
+        allMessages.push({
+          role: lastUserMessage.role,
+          content: processedContent,
+        });
+      }
+    }
 
     console.log("All messages for AI context:", allMessages);
     console.log(
@@ -313,6 +305,9 @@ export async function POST(req: NextRequest) {
           openrouter: !!apiKeys?.openrouter,
         },
       });
+
+      console.log("Provider API keys:", providerApiKeys);
+      console.log("Model:", model);
 
       languageModel = getLanguageModel(model, providerApiKeys);
       console.log("Language model created successfully");
@@ -351,6 +346,7 @@ export async function POST(req: NextRequest) {
     // Stream the response
     try {
       console.log(`About to call streamText with ${model}...`);
+      console.log("languageModel", languageModel);
 
       const result = await streamText({
         model: languageModel,
@@ -373,6 +369,9 @@ export async function POST(req: NextRequest) {
             console.error("Error saving AI response:", msgError);
           }
         },
+        onError(error) {
+          console.error("Error during streamText:", error);
+        },
       });
 
       console.log("streamText completed successfully");
@@ -381,13 +380,32 @@ export async function POST(req: NextRequest) {
       return response;
     } catch (streamError) {
       console.error("Error in streamText:", streamError);
-      return new Response(
-        JSON.stringify({ error: "Failed to generate response" }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+
+      const errorResponse = {
+        error: "Failed to generate response",
+        details: "An unknown error occurred during streaming.",
+      };
+
+      if (streamError instanceof Error) {
+        errorResponse.details = streamError.message;
+        // The AI SDK often puts detailed error information in the 'cause' property
+        if (streamError.cause) {
+          console.error("Stream Error Cause:", streamError.cause);
+          // Try to stringify, but handle potential circular structures
+          try {
+            errorResponse.details += ` | Cause: ${JSON.stringify(
+              streamError.cause,
+            )}`;
+          } catch {
+            errorResponse.details += ` | Cause: (Could not stringify error cause)`;
+          }
+        }
+      }
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
     }
   } catch (error) {
     console.error("Chat API error:", error);

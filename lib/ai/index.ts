@@ -111,19 +111,9 @@ export const AI_MODELS: AIModel[] = [
   },
   {
     id: "claude-3-5-sonnet-20241022",
-    name: "Claude Sonnet 3.5 v2",
-    provider: "anthropic",
-    description: "Latest Sonnet 3.5 with improved capabilities",
-    maxTokens: 200000,
-    supportsFunctions: true,
-    supportsVision: true,
-    costPer1kTokens: { input: 0.003, output: 0.015 },
-  },
-  {
-    id: "claude-3-5-sonnet-20240620",
     name: "Claude Sonnet 3.5",
     provider: "anthropic",
-    description: "Original Sonnet 3.5 model",
+    description: "Anthropic's most popular model for complex tasks",
     maxTokens: 200000,
     supportsFunctions: true,
     supportsVision: true,
@@ -235,19 +225,9 @@ export const AI_MODELS: AIModel[] = [
   },
   {
     id: "anthropic/claude-3-5-sonnet",
-    name: "Claude Sonnet 3.5 v2",
-    provider: "openrouter",
-    description: "Anthropic's Claude Sonnet 3.5 v2 through OpenRouter",
-    maxTokens: 200000,
-    supportsFunctions: true,
-    supportsVision: true,
-    costPer1kTokens: { input: 0.003, output: 0.015 },
-  },
-  {
-    id: "anthropic/claude-3-5-sonnet-legacy",
     name: "Claude Sonnet 3.5",
     provider: "openrouter",
-    description: "Anthropic's Claude Sonnet 3.5 (original) through OpenRouter",
+    description: "Anthropic's Claude Sonnet 3.5 through OpenRouter",
     maxTokens: 200000,
     supportsFunctions: true,
     supportsVision: true,
@@ -274,7 +254,7 @@ export const AI_MODELS: AIModel[] = [
     costPer1kTokens: { input: 0.00015, output: 0.0006 },
   },
   {
-    id: "google/gemini-2.5-flash-lite-preview",
+    id: "google/gemini-2.5-flash-lite-preview-06-17",
     name: "Gemini 2.5 Flash-Lite Preview",
     provider: "openrouter",
     description: "Google's Gemini 2.5 Flash-Lite Preview through OpenRouter",
@@ -435,9 +415,9 @@ export const CONSOLIDATED_MODELS: ConsolidatedModel[] = [
     ],
   },
   {
-    baseId: "claude-3-5-sonnet-v2",
-    name: "Claude Sonnet 3.5 v2",
-    description: "Latest Sonnet 3.5 with improved capabilities",
+    baseId: "claude-3-5-sonnet",
+    name: "Claude Sonnet 3.5",
+    description: "Anthropic's most popular model for complex tasks",
     maxTokens: 200000,
     supportsFunctions: true,
     supportsVision: true,
@@ -451,27 +431,6 @@ export const CONSOLIDATED_MODELS: ConsolidatedModel[] = [
       {
         provider: "openrouter",
         modelId: "anthropic/claude-3-5-sonnet",
-        costPer1kTokens: { input: 0.003, output: 0.015 },
-      },
-    ],
-  },
-  {
-    baseId: "claude-3-5-sonnet",
-    name: "Claude Sonnet 3.5",
-    description: "Original Sonnet 3.5 model",
-    maxTokens: 200000,
-    supportsFunctions: true,
-    supportsVision: true,
-    sources: [
-      {
-        provider: "anthropic",
-        modelId: "claude-3-5-sonnet-20240620",
-        costPer1kTokens: { input: 0.003, output: 0.015 },
-        preferred: true,
-      },
-      {
-        provider: "openrouter",
-        modelId: "anthropic/claude-3-5-sonnet-legacy",
         costPer1kTokens: { input: 0.003, output: 0.015 },
       },
     ],
@@ -519,7 +478,7 @@ export const CONSOLIDATED_MODELS: ConsolidatedModel[] = [
     ],
   },
   {
-    baseId: "gemini-2.5-flash-lite-preview",
+    baseId: "gemini-2.5-flash-lite-preview-06-17",
     name: "Gemini 2.5 Flash-Lite Preview",
     description: "Lightweight preview model",
     maxTokens: 1000000,
@@ -534,7 +493,7 @@ export const CONSOLIDATED_MODELS: ConsolidatedModel[] = [
       },
       {
         provider: "openrouter",
-        modelId: "google/gemini-2.5-flash-lite-preview",
+        modelId: "google/gemini-2.5-flash-lite-preview-06-17",
         costPer1kTokens: { input: 0.00015, output: 0.0006 },
       },
     ],
@@ -657,7 +616,9 @@ export function getLanguageModel(
         `Using Google API key: ${googleKey ? "✓ Available" : "✗ Missing"}`,
       );
       try {
-        const customGoogle = createGoogleGenerativeAI({ apiKey: googleKey });
+        const customGoogle = createGoogleGenerativeAI({
+          apiKey: googleKey,
+        });
         return customGoogle(modelId);
       } catch (error) {
         console.error("Error creating Google language model:", error);
@@ -673,6 +634,9 @@ export function getLanguageModel(
           "OpenRouter API key is required for this model. Please add your API key in Settings.",
         );
       }
+      console.log("OpenRouter API key:", openrouterKey);
+      console.log("Model:", modelId);
+      console.log("Provider:", model.provider);
       const customOpenRouter = createOpenAI({
         apiKey: openrouterKey,
         baseURL: "https://openrouter.ai/api/v1",
