@@ -157,9 +157,12 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar variant="floating" className="w-64 flex-shrink-0 overflow-hidden">
+    <Sidebar
+      variant="floating"
+      className="bg-background w-64 flex-shrink-0 overflow-hidden"
+    >
       <SidebarHeader>
-        <div className="text-muted-foreground py-2 text-center text-sm font-medium">
+        <div className="text-pewter py-2 text-center text-sm font-medium">
           Wish T3 Chat
         </div>
       </SidebarHeader>
@@ -169,7 +172,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
         <div className="flex-shrink-0 p-2">
           <Button
             onClick={navigateToNewChat}
-            className="h-9 w-full justify-start gap-2"
+            className="border-pewter/30 hover:bg-warm-seashell/10 hover:border-pewter/50 h-9 w-full justify-start gap-2"
             variant="outline"
           >
             <Plus className="h-4 w-4" />

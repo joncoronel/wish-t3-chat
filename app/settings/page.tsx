@@ -11,17 +11,20 @@ export default async function SettingsPage() {
   return (
     <div className="bg-background min-h-screen">
       {/* Header */}
-      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 border-b backdrop-blur">
+      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 border-pewter/20 border-b backdrop-blur">
         <div className="container mx-auto max-w-4xl px-4 py-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" asChild>
-              <a href="/chat" className="flex items-center gap-2">
+              <a
+                href="/chat"
+                className="hover:text-pewter flex items-center gap-2"
+              >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Chat
               </a>
             </Button>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold">Settings</h1>
+              <h1 className="text-pewter text-2xl font-bold">Settings</h1>
               <p className="text-muted-foreground text-sm">
                 Manage your API keys, preferences, and account settings.
               </p>
@@ -45,7 +48,12 @@ export default async function SettingsPage() {
                     usage.
                   </p>
                 </div>
-                <Badge variant="secondary">Bring Your Own Key</Badge>
+                <Badge
+                  variant="secondary"
+                  className="bg-warm-seashell/20 text-warm-seashell border-warm-seashell/30"
+                >
+                  Bring Your Own Key
+                </Badge>
               </div>
             </CardHeader>
             <CardContent>

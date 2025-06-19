@@ -184,7 +184,7 @@ export function ChatInput({
           </div>
 
           {/* Bottom toolbar */}
-          <div className="bg-muted/30 flex items-center justify-between border-t px-4 py-3">
+          <div className="bg-warm-seashell/20 border-pewter/20 flex items-center justify-between border-t px-4 py-3">
             <div className="flex items-center gap-3">
               {/* Model selector */}
               <ModelSelector
@@ -199,7 +199,7 @@ export function ChatInput({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 rounded-full px-3 text-sm"
+                className="hover:bg-pewter/10 hover:text-pewter h-8 rounded-full px-3 text-sm"
                 disabled={disabled || isStreaming}
                 title="Search"
               >
@@ -224,7 +224,7 @@ export function ChatInput({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 rounded-full p-0"
+                    className="hover:bg-warm-seashell/20 hover:text-warm-seashell h-8 w-8 rounded-full p-0"
                     disabled={disabled || isStreaming || isUploading}
                     title={isUploading ? "Uploading..." : "Attach file"}
                   >

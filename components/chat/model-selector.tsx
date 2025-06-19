@@ -88,13 +88,13 @@ function getProviderColor(provider: string) {
     case "openai":
       return "text-green-600 dark:text-green-400";
     case "anthropic":
-      return "text-orange-600 dark:text-orange-400";
+      return "text-warm-seashell dark:text-orange-400";
     case "google":
-      return "text-blue-600 dark:text-blue-400";
+      return "text-pewter dark:text-blue-400";
     case "openrouter":
-      return "text-purple-600 dark:text-purple-400";
+      return "text-neutral-gray dark:text-purple-400";
     default:
-      return "text-gray-600 dark:text-gray-400";
+      return "text-muted-foreground dark:text-gray-400";
   }
 }
 
@@ -229,7 +229,7 @@ export function ModelSelector({
               <div className="border-b px-4 py-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <OpenRouterIcon className="h-4 w-4 text-purple-600" />
+                    <OpenRouterIcon className="text-neutral-gray h-4 w-4" />
                     <span className="text-sm font-medium">
                       Prefer OpenRouter
                     </span>
