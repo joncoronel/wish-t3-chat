@@ -281,8 +281,6 @@ export function useApiKeys({ userId }: UseApiKeysProps) {
     clearAllApiKeys,
     // Helper to check if a provider has an API key
     hasApiKey,
-    // Helper to get storage method for display
-    storageMethod: "Encrypted Database",
     isEncryptionAvailable: !!encryptionKey && isWebCryptoAvailable(),
     // SWR related
     error: fetchError,

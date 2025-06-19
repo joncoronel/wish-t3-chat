@@ -61,7 +61,6 @@ export function SettingsForm({ userId }: SettingsFormProps) {
     apiKeys: savedApiKeys,
     updateApiKeys,
     isLoading: apiKeysLoading,
-    storageMethod,
     deleteApiKey,
     isEncryptionAvailable,
   } = useApiKeys({ userId });
@@ -162,7 +161,7 @@ export function SettingsForm({ userId }: SettingsFormProps) {
         return updated;
       });
 
-      toast.success(`API keys saved successfully to ${storageMethod}!`);
+      toast.success("API keys saved successfully!");
     } catch (error) {
       console.error("Error saving settings:", error);
       toast.error("Failed to save API keys. Please try again.");
@@ -186,33 +185,30 @@ export function SettingsForm({ userId }: SettingsFormProps) {
   return (
     <div className="space-y-6">
       {/* Encryption status indicator */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
+      {!isEncryptionAvailable && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Client-side encryption not available. Please ensure you&apos;re
+            using a modern browser with HTTPS.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isEncryptionAvailable && (
+        <Card>
+          <CardContent className="pt-6">
             <div className="text-muted-foreground flex items-center gap-2 text-sm">
               <Shield className="h-4 w-4" />
-              <span>
-                API keys are stored in: <strong>{storageMethod}</strong>
-              </span>
-              {isEncryptionAvailable && (
-                <Badge variant="secondary" className="ml-2">
-                  <Shield className="mr-1 h-3 w-3" />
-                  Encrypted
-                </Badge>
-              )}
+              <span>API keys are encrypted and stored securely</span>
+              <Badge variant="secondary" className="ml-2">
+                <Shield className="mr-1 h-3 w-3" />
+                Encrypted
+              </Badge>
             </div>
-            {!isEncryptionAvailable && (
-              <Alert className="mt-2">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  Client-side encryption not available. Please ensure
-                  you&apos;re using a modern browser with HTTPS.
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {Object.entries(PROVIDER_INFO).map(([provider, info]) => {
         const localKeyState = localApiKeys[provider];
@@ -279,6 +275,7 @@ export function SettingsForm({ userId }: SettingsFormProps) {
                       size="sm"
                       className="h-8 w-8 p-0"
                       onClick={() => toggleVisibility(provider)}
+                      disabled={!isEncryptionAvailable}
                     >
                       {localKeyState.isVisible ? (
                         <EyeOff className="h-4 w-4" />
@@ -293,7 +290,7 @@ export function SettingsForm({ userId }: SettingsFormProps) {
                         size="sm"
                         className="text-destructive h-8 w-8 p-0"
                         onClick={() => removeApiKey(provider)}
-                        disabled={!isEncryptionAvailable}
+                        disabled={loading || !isEncryptionAvailable}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

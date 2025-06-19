@@ -1,8 +1,6 @@
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
-import { getUser } from "@/lib/auth";
 
-import { SettingsForm } from "@/components/settings/settings-form";
+import { SettingsServer } from "@/components/settings/settings-server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -10,12 +8,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 export default async function SettingsPage() {
-  const user = await getUser();
-
-  if (!user) {
-    redirect("/auth/login");
-  }
-
   return (
     <div className="bg-background min-h-screen">
       {/* Header */}
@@ -58,7 +50,7 @@ export default async function SettingsPage() {
             </CardHeader>
             <CardContent>
               <Suspense fallback={<div>Loading settings...</div>}>
-                <SettingsForm userId={user.id} />
+                <SettingsServer />
               </Suspense>
             </CardContent>
           </Card>
