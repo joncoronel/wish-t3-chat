@@ -1,16 +1,14 @@
 /**
  * Client-side encryption utilities for API keys
- * Uses Web Crypto API with session-derived encryption keys
+ * Uses Web Crypto API with user-ID-derived encryption keys for cross-device compatibility
  */
 
-// Derive encryption key from user session token
-export async function deriveEncryptionKey(
-  sessionToken: string,
-): Promise<CryptoKey> {
+// Derive encryption key from user ID (consistent across devices/sessions)
+export async function deriveEncryptionKey(userId: string): Promise<CryptoKey> {
   const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
     "raw",
-    encoder.encode(sessionToken),
+    encoder.encode(userId),
     { name: "PBKDF2" },
     false,
     ["deriveKey"],

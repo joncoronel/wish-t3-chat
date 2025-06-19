@@ -2,7 +2,6 @@
 
 import { useEffect, useCallback, useMemo } from "react";
 import { useAtom } from "jotai";
-import { createClient } from "@/lib/supabase/client";
 import useSWR from "swr";
 import {
   deriveEncryptionKey,
@@ -63,10 +62,10 @@ export function useApiKeys({ userId }: UseApiKeysProps) {
     return encryptedApiKeys;
   }, [JSON.stringify(encryptedApiKeys)]);
 
-  // Initialize encryption key from session (only once)
+  // Initialize encryption key from user ID (consistent across devices/sessions)
   useEffect(() => {
     console.log("initializeEncryption");
-    if (encryptionKey) return; // Skip if already set
+    if (encryptionKey || !userId) return; // Skip if already set or no user ID
 
     async function initializeEncryption() {
       try {
@@ -75,24 +74,16 @@ export function useApiKeys({ userId }: UseApiKeysProps) {
           return;
         }
 
-        if (!encryptionKey) {
-          const supabase = createClient();
-          const {
-            data: { session },
-          } = await supabase.auth.getSession();
-
-          if (session?.access_token) {
-            const key = await deriveEncryptionKey(session.access_token);
-            setEncryptionKey(key);
-          }
-        }
+        // Use user ID for encryption key derivation (consistent across sessions/devices)
+        const key = await deriveEncryptionKey(userId);
+        setEncryptionKey(key);
       } catch (error) {
         console.error("Error initializing encryption:", error);
       }
     }
 
     initializeEncryption();
-  }, []); // Empty dependency array - only run once
+  }, [userId, encryptionKey, setEncryptionKey]); // Include userId in dependencies
 
   // Decrypt API keys when encryption key or encrypted data changes
   useEffect(() => {
