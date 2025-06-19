@@ -17,7 +17,7 @@ import {
 
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { useApiKeys } from "@/hooks/use-api-keys";
+import { useApiKeysUnified } from "@/hooks/use-api-keys-unified";
 import { useGlobalModel } from "@/hooks/use-global-model";
 import {
   CheckIcon,
@@ -120,7 +120,7 @@ export function ModelSelector({
 
   // Use global OpenRouter preference from URL state
   const { preferOpenRouter, toggleOpenRouterPreference } = useGlobalModel();
-  const { apiKeys } = useApiKeys({ userId: userId || "" });
+  const { apiKeys } = useApiKeysUnified({ userId: userId || "" });
 
   // Handle OpenRouter preference toggle change
   const handleOpenRouterToggle = (enabled: boolean) => {

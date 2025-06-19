@@ -146,4 +146,8 @@ export interface ShareSettings {
   password?: string;
 }
 
-export { type Database } from "./database";
+export {
+  type Database,
+  type ApiKeyStorageMode,
+  type UserPreferences,
+} from "./database";

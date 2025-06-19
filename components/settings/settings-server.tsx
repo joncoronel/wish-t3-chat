@@ -1,5 +1,6 @@
 import { SWRConfig } from "swr";
 import { getEncryptedApiKeys } from "@/lib/data/api-keys";
+import { getUserPreferences } from "@/lib/data/user-preferences";
 import { SettingsForm } from "./settings-form";
 import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -10,14 +11,19 @@ export async function SettingsServer() {
   if (!user) {
     redirect("/auth/login");
   }
-  // Fetch encrypted API keys on the server
-  const encryptedApiKeys = await getEncryptedApiKeys(user.id);
+
+  // Fetch data on the server for performance
+  const [encryptedApiKeys, userPreferences] = await Promise.all([
+    getEncryptedApiKeys(user.id),
+    getUserPreferences(user.id),
+  ]);
 
   return (
     <SWRConfig
       value={{
         fallback: {
           [`encrypted-api-keys-${user.id}`]: encryptedApiKeys,
+          [`user-preferences-${user.id}`]: userPreferences,
         },
       }}
     >

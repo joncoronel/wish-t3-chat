@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useApiKeys } from "@/hooks/use-api-keys";
+import { useApiKeysUnified } from "@/hooks/use-api-keys-unified";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,8 +14,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+
 import { toast } from "sonner";
-import { Eye, EyeOff, Key, Trash2, Shield, AlertTriangle } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Key,
+  Trash2,
+  Shield,
+  AlertTriangle,
+  Database,
+  HardDrive,
+  Settings,
+} from "lucide-react";
 import { AI_PROVIDERS } from "@/lib/ai";
 
 const PROVIDER_INFO = {
@@ -63,8 +74,12 @@ export function SettingsForm({ userId }: SettingsFormProps) {
     isLoading: apiKeysLoading,
     deleteApiKey,
     isEncryptionAvailable,
-  } = useApiKeys({ userId });
+    apiKeyStorageMode,
+    switchStorageMode,
+    storageInfo,
+  } = useApiKeysUnified({ userId });
   const [loading, setLoading] = useState(false);
+  const [switchingStorage, setSwitchingStorage] = useState(false);
   const [localApiKeys, setLocalApiKeys] = useState<APIKeys>(() => {
     const initialKeys: APIKeys = {};
 
@@ -195,19 +210,193 @@ export function SettingsForm({ userId }: SettingsFormProps) {
         </Alert>
       )}
 
-      {isEncryptionAvailable && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-muted-foreground flex items-center gap-2 text-sm">
-              <Shield className="h-4 w-4" />
-              <span>API keys are encrypted and stored securely</span>
-              <Badge variant="secondary" className="ml-2">
-                <Shield className="mr-1 h-3 w-3" />
-                Encrypted
-              </Badge>
+      {/* Storage Mode Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            API Key Storage
+          </CardTitle>
+          <CardDescription>
+            Choose how your API keys are stored. You can switch between methods
+            at any time.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Encrypted Database Storage */}
+            <div
+              className={`rounded-lg border p-4 transition-all ${
+                apiKeyStorageMode === "encrypted"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <div className="space-y-3">
+                <div className="flex items-start space-x-3">
+                  <Database
+                    className={`mt-0.5 h-5 w-5 ${apiKeyStorageMode === "encrypted" ? "text-primary" : "text-muted-foreground"}`}
+                  />
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium">Encrypted Database</p>
+                      {apiKeyStorageMode === "encrypted" && (
+                        <Badge variant="default" className="text-xs">
+                          Active
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-muted-foreground text-sm">
+                      Keys are encrypted client-side and stored in the database.
+                      Works across all devices.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-3 w-3" />
+                      <span className="text-muted-foreground text-xs">
+                        End-to-end encrypted
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {apiKeyStorageMode !== "encrypted" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                    onClick={async () => {
+                      setSwitchingStorage(true);
+                      await switchStorageMode("encrypted");
+                      setSwitchingStorage(false);
+                    }}
+                    disabled={switchingStorage || loading}
+                  >
+                    {switchingStorage ? (
+                      <>
+                        <div className="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Migrating...
+                      </>
+                    ) : (
+                      "Switch to Encrypted"
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
-          </CardContent>
-        </Card>
+
+            {/* Local Storage */}
+            <div
+              className={`rounded-lg border p-4 transition-all ${
+                apiKeyStorageMode === "local"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <div className="space-y-3">
+                <div className="flex items-start space-x-3">
+                  <HardDrive
+                    className={`mt-0.5 h-5 w-5 ${apiKeyStorageMode === "local" ? "text-primary" : "text-muted-foreground"}`}
+                  />
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium">Local Storage Only</p>
+                      {apiKeyStorageMode === "local" && (
+                        <Badge variant="default" className="text-xs">
+                          Active
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-muted-foreground text-sm">
+                      Keys are stored only in your browser&apos;s local storage.
+                      Device-specific.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-3 w-3 text-yellow-500" />
+                      <span className="text-muted-foreground text-xs">
+                        Not synced across devices
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {apiKeyStorageMode !== "local" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                    onClick={async () => {
+                      setSwitchingStorage(true);
+                      await switchStorageMode("local");
+                      setSwitchingStorage(false);
+                    }}
+                    disabled={switchingStorage || loading}
+                  >
+                    {switchingStorage ? (
+                      <>
+                        <div className="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Migrating...
+                      </>
+                    ) : (
+                      "Switch to Local"
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Current status and migration info */}
+          <div className="space-y-3 border-t pt-4">
+            <div className="text-muted-foreground text-sm">
+              <div className="flex items-center gap-2">
+                {apiKeyStorageMode === "encrypted" ? (
+                  <Shield className="h-4 w-4" />
+                ) : (
+                  <HardDrive className="h-4 w-4" />
+                )}
+                <span>
+                  Currently using{" "}
+                  {apiKeyStorageMode === "encrypted"
+                    ? "encrypted database"
+                    : "local"}{" "}
+                  storage
+                </span>
+              </div>
+            </div>
+
+            {/* Show migration info if keys exist in both storages */}
+            {storageInfo.hasLocalKeys && storageInfo.hasEncryptedKeys && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  You have API keys in both storage locations. When you switch
+                  storage modes, keys will be migrated to the selected storage
+                  and removed from the other.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {switchingStorage && (
+              <Alert>
+                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <AlertDescription className="text-sm">
+                  Migrating API keys between storage locations...
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Encryption status indicator */}
+      {!isEncryptionAvailable && apiKeyStorageMode === "encrypted" && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Client-side encryption not available. Please ensure you&apos;re
+            using a modern browser with HTTPS, or switch to local storage mode.
+          </AlertDescription>
+        </Alert>
       )}
 
       {Object.entries(PROVIDER_INFO).map(([provider, info]) => {
@@ -266,7 +455,10 @@ export function SettingsForm({ userId }: SettingsFormProps) {
                       updateLocalApiKey(provider, e.target.value)
                     }
                     className="pr-20"
-                    disabled={!isEncryptionAvailable}
+                    disabled={
+                      apiKeyStorageMode === "encrypted" &&
+                      !isEncryptionAvailable
+                    }
                   />
                   <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
                     <Button
@@ -275,7 +467,10 @@ export function SettingsForm({ userId }: SettingsFormProps) {
                       size="sm"
                       className="h-8 w-8 p-0"
                       onClick={() => toggleVisibility(provider)}
-                      disabled={!isEncryptionAvailable}
+                      disabled={
+                        apiKeyStorageMode === "encrypted" &&
+                        !isEncryptionAvailable
+                      }
                     >
                       {localKeyState.isVisible ? (
                         <EyeOff className="h-4 w-4" />
@@ -290,7 +485,11 @@ export function SettingsForm({ userId }: SettingsFormProps) {
                         size="sm"
                         className="text-destructive h-8 w-8 p-0"
                         onClick={() => removeApiKey(provider)}
-                        disabled={loading || !isEncryptionAvailable}
+                        disabled={
+                          loading ||
+                          (apiKeyStorageMode === "encrypted" &&
+                            !isEncryptionAvailable)
+                        }
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -332,7 +531,12 @@ export function SettingsForm({ userId }: SettingsFormProps) {
       <div className="flex justify-end">
         <Button
           onClick={handleSubmit}
-          disabled={!hasChanges || loading || !isEncryptionAvailable}
+          disabled={
+            !hasChanges ||
+            loading ||
+            switchingStorage ||
+            (apiKeyStorageMode === "encrypted" && !isEncryptionAvailable)
+          }
           className="min-w-[120px]"
         >
           {loading ? "Saving..." : "Save API Keys"}

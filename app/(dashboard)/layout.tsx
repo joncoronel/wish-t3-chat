@@ -3,6 +3,7 @@ import { SWRConfig } from "swr";
 import { getUser } from "@/lib/auth";
 import { getConversations } from "@/lib/data/conversations";
 import { getEncryptedApiKeys } from "@/lib/data/api-keys";
+import { getUserPreferences } from "@/lib/data/user-preferences";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { SidebarTriggerWithNewChat } from "@/components/layout/sidebar-trigger-with-new-chat";
@@ -19,9 +20,12 @@ export default async function DashboardLayout({
     redirect("/auth/login");
   }
 
-  // Fetch conversations and encrypted API keys on the server
-  const conversations = await getConversations(user.id);
-  const encryptedApiKeys = await getEncryptedApiKeys(user.id);
+  // Fetch data on the server for performance
+  const [conversations, encryptedApiKeys, userPreferences] = await Promise.all([
+    getConversations(user.id),
+    getEncryptedApiKeys(user.id),
+    getUserPreferences(user.id),
+  ]);
 
   return (
     <SWRConfig
@@ -29,6 +33,7 @@ export default async function DashboardLayout({
         fallback: {
           [`conversations-${user.id}`]: conversations,
           [`encrypted-api-keys-${user.id}`]: encryptedApiKeys,
+          [`user-preferences-${user.id}`]: userPreferences,
         },
         // Global SWR configuration to prevent unnecessary fetches
         revalidateOnMount: false,

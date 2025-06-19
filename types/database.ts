@@ -251,3 +251,11 @@ export interface Database {
     };
   };
 }
+
+// API Key Storage Preferences
+export type ApiKeyStorageMode = "encrypted" | "local";
+
+export interface UserPreferences {
+  apiKeyStorageMode?: ApiKeyStorageMode;
+  // ... other preferences can be added here
+}

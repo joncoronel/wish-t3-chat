@@ -17,7 +17,7 @@ import {
 import { useChatUrl } from "@/hooks/use-chat-url";
 import { useChatLoading } from "@/hooks/use-chat-loading";
 import { useGlobalModel } from "@/hooks/use-global-model";
-import { useApiKeys } from "@/hooks/use-api-keys";
+import { useApiKeysUnified } from "@/hooks/use-api-keys-unified";
 import { ChatWelcome } from "./chat-welcome";
 import { ChatMessages } from "./chat-messages";
 
@@ -58,7 +58,7 @@ export function ChatInterface({
   const { setLoading } = useChatLoading();
   const { selectedModel } = useGlobalModel();
 
-  const { apiKeys, isLoading: isLoadingApiKeys } = useApiKeys({
+  const { apiKeys, isLoading: isLoadingApiKeys } = useApiKeysUnified({
     userId: userId || "",
   });
 
