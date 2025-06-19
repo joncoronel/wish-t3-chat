@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { SWRConfig } from "swr";
 import { getUser } from "@/lib/auth";
 import { getConversations } from "@/lib/data/conversations";
+import { getEncryptedApiKeys } from "@/lib/data/api-keys";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { SidebarTriggerWithNewChat } from "@/components/layout/sidebar-trigger-with-new-chat";
@@ -18,14 +19,16 @@ export default async function DashboardLayout({
     redirect("/auth/login");
   }
 
-  // Fetch conversations on the server
+  // Fetch conversations and encrypted API keys on the server
   const conversations = await getConversations(user.id);
+  const encryptedApiKeys = await getEncryptedApiKeys(user.id);
 
   return (
     <SWRConfig
       value={{
         fallback: {
           [`conversations-${user.id}`]: conversations,
+          [`encrypted-api-keys-${user.id}`]: encryptedApiKeys,
         },
         // Global SWR configuration to prevent unnecessary fetches
         revalidateOnMount: false,

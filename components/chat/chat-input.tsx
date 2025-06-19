@@ -27,6 +27,7 @@ interface ChatInputProps {
   disabled?: boolean;
   placeholder?: string;
   className?: string;
+  userId?: string;
 }
 
 export function ChatInput({
@@ -36,6 +37,7 @@ export function ChatInput({
   disabled = false,
   placeholder = "Type your message...",
   className,
+  userId,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
@@ -190,6 +192,7 @@ export function ChatInput({
                 onModelSelect={selectModel}
                 disabled={disabled || isStreaming}
                 className="h-8"
+                userId={userId}
               />
 
               {/* Search button */}

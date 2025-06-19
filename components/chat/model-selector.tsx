@@ -103,6 +103,7 @@ interface ModelSelectorProps {
   onModelSelect: (modelId: string) => void;
   disabled?: boolean;
   className?: string;
+  userId?: string;
 }
 
 export function ModelSelector({
@@ -110,14 +111,16 @@ export function ModelSelector({
   onModelSelect,
   disabled = false,
   className,
+  userId,
 }: ModelSelectorProps) {
   const [open, setOpen] = useState(false);
+
   // Get current model info
   const currentModelInfo = getModelById(selectedModel);
 
   // Use global OpenRouter preference from URL state
   const { preferOpenRouter, toggleOpenRouterPreference } = useGlobalModel();
-  const { apiKeys } = useApiKeys();
+  const { apiKeys } = useApiKeys({ userId: userId || "" });
 
   // Handle OpenRouter preference toggle change
   const handleOpenRouterToggle = (enabled: boolean) => {

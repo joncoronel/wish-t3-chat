@@ -103,5 +103,11 @@ export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
     }
   };
 
-  return <ChatInput onSendMessage={handleSendMessage} disabled={!userId} />;
+  return (
+    <ChatInput
+      onSendMessage={handleSendMessage}
+      disabled={!userId}
+      userId={userId}
+    />
+  );
 }

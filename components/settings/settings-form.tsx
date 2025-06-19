@@ -1,59 +1,70 @@
 "use client";
 
 import { useState } from "react";
+import { useApiKeys } from "@/hooks/use-api-keys";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, ExternalLink, Key, Trash2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { Eye, EyeOff, Key, Trash2, Shield, AlertTriangle } from "lucide-react";
 import { AI_PROVIDERS } from "@/lib/ai";
-import { useApiKeys } from "@/hooks/use-api-keys";
-
-interface APIKeyState {
-  value: string;
-  isVisible: boolean;
-}
-
-type APIKeys = Record<string, APIKeyState>;
 
 const PROVIDER_INFO = {
   openai: {
     name: "OpenAI",
-    description: "GPT-4, GPT-3.5 Turbo, and other OpenAI models",
-    getKeyUrl: "https://platform.openai.com/api-keys",
     placeholder: "sk-...",
+    icon: "🤖",
+    getKeyUrl: "https://platform.openai.com/api-keys",
   },
   anthropic: {
     name: "Anthropic",
-    description: "Claude 3.5 Sonnet, Claude 3 Opus, and other Claude models",
-    getKeyUrl: "https://console.anthropic.com/settings/keys",
     placeholder: "sk-ant-...",
+    icon: "🧠",
+    getKeyUrl: "https://console.anthropic.com/settings/keys",
   },
   google: {
     name: "Google AI",
-    description: "Gemini 2.5 Pro, Gemini 2.5 Flash, and other Gemini models",
+    placeholder: "AI...",
+    icon: "🔬",
     getKeyUrl: "https://aistudio.google.com/app/apikey",
-    placeholder: "AIza...",
   },
   openrouter: {
     name: "OpenRouter",
-    description:
-      "Access to 200+ models including GPT-4, Claude, Gemini, and more",
-    getKeyUrl: "https://openrouter.ai/settings/keys",
     placeholder: "sk-or-...",
+    icon: "🌐",
+    getKeyUrl: "https://openrouter.ai/settings/keys",
   },
-};
+} as const;
 
-export function SettingsForm() {
+interface APIKeys {
+  [key: string]: {
+    value: string;
+    isVisible: boolean;
+  };
+}
+
+interface SettingsFormProps {
+  userId: string;
+}
+
+export function SettingsForm({ userId }: SettingsFormProps) {
   const {
     apiKeys: savedApiKeys,
     updateApiKeys,
     isLoading: apiKeysLoading,
     storageMethod,
     deleteApiKey,
-  } = useApiKeys();
+    isEncryptionAvailable,
+  } = useApiKeys({ userId });
   const [loading, setLoading] = useState(false);
   const [localApiKeys, setLocalApiKeys] = useState<APIKeys>(() => {
     const initialKeys: APIKeys = {};
@@ -93,7 +104,7 @@ export function SettingsForm() {
     try {
       setLoading(true);
 
-      // Delete from localStorage via the hook
+      // Delete from encrypted database via the hook
       const result = await deleteApiKey(provider);
 
       if (!result.success) {
@@ -174,14 +185,31 @@ export function SettingsForm() {
 
   return (
     <div className="space-y-6">
-      {/* Storage method indicator */}
+      {/* Encryption status indicator */}
       <Card>
         <CardContent className="pt-6">
-          <div className="text-muted-foreground flex items-center gap-2 text-sm">
-            <Key className="h-4 w-4" />
-            <span>
-              API keys are stored in: <strong>{storageMethod}</strong>
-            </span>
+          <div className="flex items-center justify-between">
+            <div className="text-muted-foreground flex items-center gap-2 text-sm">
+              <Shield className="h-4 w-4" />
+              <span>
+                API keys are stored in: <strong>{storageMethod}</strong>
+              </span>
+              {isEncryptionAvailable && (
+                <Badge variant="secondary" className="ml-2">
+                  <Shield className="mr-1 h-3 w-3" />
+                  Encrypted
+                </Badge>
+              )}
+            </div>
+            {!isEncryptionAvailable && (
+              <Alert className="mt-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  Client-side encryption not available. Please ensure
+                  you&apos;re using a modern browser with HTTPS.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -196,41 +224,37 @@ export function SettingsForm() {
 
         return (
           <Card key={provider} className="relative">
-            <CardHeader className="pb-4">
+            <CardHeader>
               <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    {info.name}
-                    {hasSavedKey && (
-                      <Badge
-                        variant="outline"
-                        className="border-green-600 text-green-600"
-                      >
-                        <Key className="mr-1 h-3 w-3" />
-                        Configured
-                      </Badge>
-                    )}
-                  </CardTitle>
-                  <p className="text-muted-foreground text-sm">
-                    {info.description}
-                  </p>
-                  <p className="text-muted-foreground text-xs">
-                    {availableModels.length} models available
-                  </p>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{info.icon}</span>
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      {info.name}
+                      {hasSavedKey && (
+                        <Badge variant="secondary">
+                          <Key className="mr-1 h-3 w-3" />
+                          Configured
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    <CardDescription>
+                      Add your {info.name} API key to access their models
+                    </CardDescription>
+                  </div>
                 </div>
                 <Button variant="outline" size="sm" asChild>
                   <a
                     href={info.getKeyUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2"
                   >
                     Get API Key
-                    <ExternalLink className="h-3 w-3" />
                   </a>
                 </Button>
               </div>
             </CardHeader>
+
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor={`${provider}-key`}>API Key</Label>
@@ -246,6 +270,7 @@ export function SettingsForm() {
                       updateLocalApiKey(provider, e.target.value)
                     }
                     className="pr-20"
+                    disabled={!isEncryptionAvailable}
                   />
                   <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
                     <Button
@@ -268,6 +293,7 @@ export function SettingsForm() {
                         size="sm"
                         className="text-destructive h-8 w-8 p-0"
                         onClick={() => removeApiKey(provider)}
+                        disabled={!isEncryptionAvailable}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -275,18 +301,44 @@ export function SettingsForm() {
                   </div>
                 </div>
               </div>
+
+              {/* Available models */}
+              {availableModels.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">
+                    Available Models
+                  </Label>
+                  <div className="flex flex-wrap gap-1">
+                    {availableModels.slice(0, 6).map((model) => (
+                      <Badge
+                        key={model.id}
+                        variant="outline"
+                        className="text-xs"
+                      >
+                        {model.name}
+                      </Badge>
+                    ))}
+                    {availableModels.length > 6 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{availableModels.length - 6} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         );
       })}
 
-      <div className="flex justify-end gap-4">
+      {/* Save button */}
+      <div className="flex justify-end">
         <Button
           onClick={handleSubmit}
-          disabled={!hasChanges || loading}
+          disabled={!hasChanges || loading || !isEncryptionAvailable}
           className="min-w-[120px]"
         >
-          {loading ? "Saving..." : "Save Changes"}
+          {loading ? "Saving..." : "Save API Keys"}
         </Button>
       </div>
     </div>

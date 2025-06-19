@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from "react";
 import { useChat } from "ai/react";
 
 import {
@@ -51,7 +57,10 @@ export function ChatInterface({
   const { navigateToChat } = useChatUrl();
   const { setLoading } = useChatLoading();
   const { selectedModel } = useGlobalModel();
-  const { apiKeys } = useApiKeys();
+
+  const { apiKeys, isLoading: isLoadingApiKeys } = useApiKeys({
+    userId: userId || "",
+  });
 
   // Debug component lifecycle - will be added after handleSendMessage
 
@@ -123,6 +132,15 @@ export function ChatInterface({
     }
   }, [chatId, activeConversationId]);
 
+  // Memoize apiKeys to prevent useChat from re-creating on every change
+  const stableApiKeys = useMemo(() => {
+    // Only update if the actual content changes, not the object reference
+    return apiKeys;
+  }, [JSON.stringify(apiKeys)]);
+
+  // Only initialize useChat when API keys are ready to prevent race conditions
+  const shouldInitializeChat = !isLoadingApiKeys;
+
   const {
     messages: chatMessages,
     append,
@@ -131,19 +149,21 @@ export function ChatInterface({
     setMessages,
   } = useChat({
     api: "/api/chat",
-    id: chatKey, // Use stable key for proper isolation
-    initialMessages: messages.map((msg) => ({
-      id: msg.id,
-      role: msg.role as "user" | "assistant" | "system",
-      content: msg.content,
-      experimental_attachments: convertDbAttachmentsToChat(msg.attachments),
-    })),
+    id: shouldInitializeChat ? chatKey : `loading-${chatKey}`, // Use different key when not ready
+    initialMessages: shouldInitializeChat
+      ? messages.map((msg) => ({
+          id: msg.id,
+          role: msg.role as "user" | "assistant" | "system",
+          content: msg.content,
+          experimental_attachments: convertDbAttachmentsToChat(msg.attachments),
+        }))
+      : [],
     body: {
       model: selectedModel,
       temperature: 0.7,
       max_tokens: 2048,
       conversationId: currentConversationId,
-      apiKeys: apiKeys,
+      apiKeys: stableApiKeys,
     },
 
     onFinish: async () => {
@@ -167,9 +187,13 @@ export function ChatInterface({
     },
   });
 
-  // Sync database messages with chat messages when they change
+  // Sync database messages with chat messages when they change and chat is ready
   useEffect(() => {
-    if (messages.length > 0 && chatMessages.length === 0) {
+    if (
+      shouldInitializeChat &&
+      messages.length > 0 &&
+      chatMessages.length === 0
+    ) {
       setMessages(
         messages.map((msg) => ({
           id: msg.id,
@@ -179,12 +203,29 @@ export function ChatInterface({
         })),
       );
     }
-  }, [messages, chatMessages.length, setMessages]);
+  }, [shouldInitializeChat, messages, chatMessages.length, setMessages]);
 
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, chatMessages]);
+
+  // Create wrapper append function that always includes current API keys
+  // const append = useCallback(
+  //   async (
+  //     message: Parameters<typeof originalAppend>[0],
+  //     options?: Parameters<typeof originalAppend>[1],
+  //   ) => {
+  //     return originalAppend(message, {
+  //       ...options,
+  //       body: {
+  //         ...options?.body,
+  //         apiKeys: stableApiKeys, // Always include current API keys
+  //       },
+  //     });
+  //   },
+  //   [originalAppend, stableApiKeys],
+  // );
 
   // Combined messages for display
   // Use chatMessages as the source of truth since we sync database messages into it
@@ -200,6 +241,20 @@ export function ChatInterface({
         toast.error("Please sign in to send messages");
         return;
       }
+
+      // Wait for API keys to be loaded before sending message
+      if (isLoadingApiKeys) {
+        console.log("API keys still loading, please wait...");
+        toast.info("Loading API keys, please wait...");
+        return;
+      }
+
+      // Debug log current API keys
+      console.log("Current API keys:", {
+        hasKeys: Object.keys(stableApiKeys).length > 0,
+        providers: Object.keys(stableApiKeys),
+        selectedModel,
+      });
 
       try {
         // If this is a new chat (no chatId)
@@ -320,7 +375,16 @@ export function ChatInterface({
         toast.error("Failed to send message");
       }
     },
-    [userId, chatId, append, navigateToChat, setActiveConversationId],
+    [
+      userId,
+      chatId,
+      append,
+      navigateToChat,
+      setActiveConversationId,
+      isLoadingApiKeys,
+      stableApiKeys,
+      selectedModel,
+    ],
   );
 
   // Handle pending messages and listen for chat events

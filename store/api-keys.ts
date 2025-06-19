@@ -1,7 +1,5 @@
 import { atom } from "jotai";
-import { atomWithStorage } from "jotai/utils";
 
-// Type for API keys
 export type ApiKeys = {
   openai?: string;
   anthropic?: string;
@@ -9,10 +7,17 @@ export type ApiKeys = {
   openrouter?: string;
 };
 
-// Local storage atom for API keys
-export const localApiKeysAtom = atomWithStorage<ApiKeys>("api-keys", {});
+// Core atom for decrypted API keys only
+export const decryptedApiKeysAtom = atom<ApiKeys>({});
 
-// Helper atom to clear all API keys
-export const clearApiKeysAtom = atom(null, (get, set) => {
-  set(localApiKeysAtom, {});
+// Atom for the encryption key (derived from session)
+export const encryptionKeyAtom = atom<CryptoKey | null>(null);
+
+// Loading state for decryption process
+export const isDecryptingAtom = atom<boolean>(false);
+
+// Helper atom to check if a provider has an API key
+export const hasApiKeyAtom = atom((get) => (provider: string) => {
+  const apiKeys = get(decryptedApiKeysAtom);
+  return !!(apiKeys as Record<string, string>)[provider];
 });

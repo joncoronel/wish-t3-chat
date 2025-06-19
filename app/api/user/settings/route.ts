@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
 
 const updateSettingsSchema = z.object({
-  api_keys: z.record(z.string()).optional(), // Accept but ignore - handled client-side
   default_model: z.string().optional(),
   theme: z.enum(["light", "dark"]).optional(),
   preferences: z.record(z.unknown()).optional(),
@@ -23,8 +22,7 @@ export async function PATCH(req: NextRequest) {
 
     const supabase = await createClient();
 
-    // API keys are handled client-side via localStorage
-    // Only handle other settings in user_settings table
+    // Handle settings (API keys are managed separately via /api/user/api-keys)
     if (
       validatedData.default_model ||
       validatedData.theme ||
@@ -75,7 +73,7 @@ export async function PATCH(req: NextRequest) {
           .from("user_settings")
           .insert({
             user_id: user.id,
-            api_keys: {}, // Empty object - API keys handled client-side
+            api_keys: {}, // Empty object initially - API keys handled separately
             default_model: validatedData.default_model || "gpt-4",
             theme: validatedData.theme || "dark",
             preferences: validatedData.preferences || {},
@@ -93,21 +91,16 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    // Get the updated settings (without API keys - they're client-side only)
+    // Get the updated settings (includes encrypted API keys)
     const { data: userSettings } = await supabase
       .from("user_settings")
       .select("*")
       .eq("user_id", user.id)
       .single();
 
-    const completeSettings = {
-      ...userSettings,
-      api_keys: {}, // Empty - API keys managed client-side
-    };
-
     return NextResponse.json({
       success: true,
-      settings: completeSettings,
+      settings: userSettings,
     });
   } catch (error) {
     console.error("Settings API error:", error);
@@ -136,7 +129,7 @@ export async function GET() {
 
     const supabase = await createClient();
 
-    // Get user settings from database
+    // Get user settings from database (includes encrypted API keys)
     const { data: settings, error } = await supabase
       .from("user_settings")
       .select("*")
@@ -152,17 +145,14 @@ export async function GET() {
       );
     }
 
-    // API keys are managed client-side via localStorage
+    // Return settings with encrypted API keys (decryption happens client-side)
     const completeSettings = settings
-      ? {
-          ...settings,
-          api_keys: {}, // Empty - API keys managed client-side
-        }
+      ? settings
       : {
           user_id: user.id,
           default_model: "gpt-4",
           theme: "dark",
-          api_keys: {}, // Empty - API keys managed client-side
+          api_keys: {}, // Empty object initially
           preferences: {},
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
