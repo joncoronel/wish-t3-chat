@@ -18,6 +18,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useApiKeys } from "@/hooks/use-api-keys";
+import { useGlobalModel } from "@/hooks/use-global-model";
 import {
   CheckIcon,
   ChevronDown,
@@ -114,14 +115,14 @@ export function ModelSelector({
   // Get current model info
   const currentModelInfo = getModelById(selectedModel);
 
-  // Preference toggle - starts false and persists user preference
-  const [preferOpenRouter, setPreferOpenRouter] = useState(false);
+  // Use global OpenRouter preference from URL state
+  const { preferOpenRouter, toggleOpenRouterPreference } = useGlobalModel();
   const { apiKeys } = useApiKeys();
 
   // Handle OpenRouter preference toggle change
   const handleOpenRouterToggle = (enabled: boolean) => {
-    // Always update the preference state first
-    setPreferOpenRouter(enabled);
+    // Update the global preference state (which updates the URL)
+    toggleOpenRouterPreference(enabled);
 
     // If we have a current model, try to switch to the appropriate provider version
     if (currentConsolidatedModel) {
