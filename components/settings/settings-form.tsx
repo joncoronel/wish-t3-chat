@@ -311,7 +311,7 @@ export function SettingsForm({ userId }: SettingsFormProps) {
                       Device-specific.
                     </p>
                     <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-3 w-3 text-yellow-500" />
+                      <AlertTriangle className="h-3 w-3 text-yellow-600 dark:text-yellow-400" />
                       <span className="text-muted-foreground text-xs">
                         Not synced across devices
                       </span>
@@ -428,7 +428,7 @@ export function SettingsForm({ userId }: SettingsFormProps) {
                     </CardDescription>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="secondary" size="sm" asChild>
                   <a
                     href={info.getKeyUrl}
                     target="_blank"

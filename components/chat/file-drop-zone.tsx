@@ -54,10 +54,10 @@ export function FileDropZone({
       file.file instanceof File ? file.file.type : file.file.type;
 
     if (fileType.startsWith("image/")) {
-      return <Image className="h-5 w-5 text-green-600" />;
+      return <Image className="h-5 w-5 text-green-600 dark:text-green-400" />;
     }
 
-    return <FileText className="h-5 w-5 text-blue-600" />;
+    return <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
   };
 
   const getFileSize = (file: FileWithPreview) => {

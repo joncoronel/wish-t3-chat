@@ -152,7 +152,7 @@ export function ChatInput({
   return (
     <div className={cn("flex justify-center p-4 pb-6", className)}>
       <div className="w-full max-w-3xl">
-        <div className="bg-background overflow-hidden rounded-2xl border shadow-lg">
+        <div className="bg-card overflow-hidden rounded-xl border shadow-lg">
           {/* Attachments area */}
           {(attachments.length > 0 || isUploading) && (
             <div className="border-b px-4 pt-3">
@@ -177,14 +177,14 @@ export function ChatInput({
                 onKeyDown={handleKeyDown}
                 placeholder={isUploading ? "Uploading files..." : placeholder}
                 disabled={disabled || isUploading}
-                className="placeholder:text-muted-foreground max-h-40 min-h-[3rem] resize-none overflow-y-auto border-0 bg-transparent p-0 text-base shadow-none outline-none focus:border-0 focus:shadow-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="placeholder:text-muted-foreground max-h-40 min-h-[3rem] resize-none overflow-y-auto border-0 bg-transparent p-0 text-base shadow-none outline-none focus:border-0 focus:shadow-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 [&]:bg-transparent"
                 rows={1}
               />
             </div>
           </div>
 
           {/* Bottom toolbar */}
-          <div className="bg-warm-seashell/20 border-pewter/20 flex items-center justify-between border-t px-4 py-3">
+          <div className="bg-muted/30 flex items-center justify-between border-t px-4 py-3">
             <div className="flex items-center gap-3">
               {/* Model selector */}
               <ModelSelector
@@ -199,7 +199,7 @@ export function ChatInput({
               <Button
                 variant="ghost"
                 size="sm"
-                className="hover:bg-pewter/10 hover:text-pewter h-8 rounded-full px-3 text-sm"
+                className="h-8 rounded-full px-3 text-sm"
                 disabled={disabled || isStreaming}
                 title="Search"
               >
@@ -224,7 +224,7 @@ export function ChatInput({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="hover:bg-warm-seashell/20 hover:text-warm-seashell h-8 w-8 rounded-full p-0"
+                    className="h-8 w-8 rounded-full p-0"
                     disabled={disabled || isStreaming || isUploading}
                     title={isUploading ? "Uploading..." : "Attach file"}
                   >

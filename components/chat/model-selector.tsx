@@ -88,13 +88,13 @@ function getProviderColor(provider: string) {
     case "openai":
       return "text-green-600 dark:text-green-400";
     case "anthropic":
-      return "text-warm-seashell dark:text-orange-400";
+      return "text-orange-600 dark:text-orange-400";
     case "google":
-      return "text-pewter dark:text-blue-400";
+      return "text-blue-600 dark:text-blue-400";
     case "openrouter":
-      return "text-neutral-gray dark:text-purple-400";
+      return "text-purple-600 dark:text-purple-400";
     default:
-      return "text-muted-foreground dark:text-gray-400";
+      return "text-muted-foreground";
   }
 }
 
@@ -197,7 +197,7 @@ export function ModelSelector({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "bg-background hover:bg-background border-input h-9 w-auto justify-between gap-2 px-3 font-normal outline-offset-0 outline-none focus-visible:outline-[3px]",
+            "bg-background border-border/60 hover:bg-background/80 hover:border-border/80 h-9 w-auto justify-between gap-2 border px-3 font-normal shadow-sm outline-offset-0 outline-none focus-visible:outline-[3px]",
             disabled && "opacity-50",
             className,
           )}
@@ -229,7 +229,7 @@ export function ModelSelector({
               <div className="border-b px-4 py-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <OpenRouterIcon className="text-neutral-gray h-4 w-4" />
+                    <OpenRouterIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                     <span className="text-sm font-medium">
                       Prefer OpenRouter
                     </span>
@@ -320,7 +320,7 @@ export function ModelSelector({
                       {/* Current selection indicator */}
                       <CheckIcon
                         className={cn(
-                          "h-4 w-4 text-green-600",
+                          "h-4 w-4 text-green-600 dark:text-green-400",
                           !isCurrentModel && "invisible",
                         )}
                       />
@@ -406,7 +406,7 @@ export function ModelSelector({
                       {/* Current selection indicator */}
                       <CheckIcon
                         className={cn(
-                          "h-4 w-4 text-green-600",
+                          "h-4 w-4 text-green-600 dark:text-green-400",
                           !isCurrentModel && "invisible",
                         )}
                       />
@@ -492,7 +492,7 @@ export function ModelSelector({
                       {/* Current selection indicator */}
                       <CheckIcon
                         className={cn(
-                          "h-4 w-4 text-green-600",
+                          "h-4 w-4 text-green-600 dark:text-green-400",
                           !isCurrentModel && "invisible",
                         )}
                       />

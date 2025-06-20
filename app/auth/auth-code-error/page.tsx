@@ -2,16 +2,16 @@ import Link from "next/link";
 
 export default function AuthCodeError() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center py-2">
+    <div className="bg-background flex min-h-screen flex-col items-center justify-center py-2">
       <div className="mx-auto max-w-md text-center">
-        <h1 className="mb-4 text-2xl font-bold text-red-600">
+        <h1 className="text-destructive mb-4 text-2xl font-bold">
           Authentication Error
         </h1>
-        <p className="mb-6 text-gray-600">
+        <p className="text-muted-foreground mb-6">
           Sorry, we couldn&apos;t complete your authentication. This could be
           due to:
         </p>
-        <ul className="mb-6 space-y-2 text-left text-gray-600">
+        <ul className="text-muted-foreground mb-6 space-y-2 text-left">
           <li>• The authentication code has expired</li>
           <li>• The authentication was cancelled</li>
           <li>• There was a network error</li>
@@ -19,13 +19,13 @@ export default function AuthCodeError() {
         <div className="space-y-4">
           <Link
             href="/login"
-            className="block w-full rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 block w-full rounded-md px-4 py-2 transition-colors"
           >
             Try Again
           </Link>
           <Link
             href="/"
-            className="block w-full rounded-md border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
+            className="border-border bg-card text-foreground hover:bg-secondary hover:text-secondary-foreground block w-full rounded-md border px-4 py-2 transition-colors"
           >
             Go Home
           </Link>

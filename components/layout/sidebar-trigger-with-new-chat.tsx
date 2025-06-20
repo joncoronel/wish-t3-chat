@@ -39,10 +39,8 @@ export function SidebarTriggerWithNewChat() {
     >
       <div
         className={cn(
-          "flex items-center transition-all duration-150 ease-[cubic-bezier(0.65,0,0.35,1)]",
-          isCollapsed
-            ? "bg-background/95 gap-1 rounded-lg border p-1 shadow-lg backdrop-blur-sm"
-            : "gap-0",
+          "bg-card/95 flex items-center rounded-lg border transition-all duration-150 ease-[cubic-bezier(0.65,0,0.35,1)]",
+          isCollapsed ? "gap-1 border p-1 shadow-lg backdrop-blur-sm" : "gap-0",
         )}
       >
         {/* Sidebar Toggle Button */}
@@ -52,7 +50,7 @@ export function SidebarTriggerWithNewChat() {
           size={isCollapsed ? "icon" : "sm"}
           className={cn(
             "h-8 w-8 transition-all duration-150 ease-[cubic-bezier(0.65,0,0.35,1)]",
-            !isCollapsed && "bg-background rounded-lg border p-0 shadow-md",
+            !isCollapsed && "bg-card rounded-lg border p-0 shadow-md",
           )}
         >
           <PanelLeftIcon className="h-4 w-4" />

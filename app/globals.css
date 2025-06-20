@@ -41,140 +41,99 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-
-  /* New modern color additions */
-  --color-warm-seashell: var(--warm-seashell);
-  --color-warm-seashell-foreground: var(--warm-seashell-foreground);
-  --color-pewter: var(--pewter);
-  --color-pewter-foreground: var(--pewter-foreground);
-  --color-neutral-gray: var(--neutral-gray);
-  --color-neutral-gray-foreground: var(--neutral-gray-foreground);
-  --color-warm-ivory: var(--warm-ivory);
-  --color-warm-ivory-foreground: var(--warm-ivory-foreground);
 }
 
 :root {
   --radius: 0.625rem;
-
-  /* Main colors based on image palette */
-  --background: oklch(0.96 0.008 45); /* Warm ivory base */
-  --foreground: oklch(0.25 0.02 280); /* Deep purple-gray */
-  --card: oklch(0.98 0.005 45); /* Slightly warmer white */
-  --card-foreground: oklch(0.25 0.02 280);
-  --popover: oklch(0.98 0.005 45);
-  --popover-foreground: oklch(0.25 0.02 280);
-
-  /* Primary using pewter tones */
-  --primary: oklch(0.55 0.02 280); /* Pewter */
-  --primary-foreground: oklch(0.98 0.005 45);
-
-  /* Secondary using seashell tones */
-  --secondary: oklch(0.88 0.025 25); /* Scallop seashell */
-  --secondary-foreground: oklch(0.35 0.02 280);
-
-  /* Muted using neutral grays */
-  --muted: oklch(0.92 0.008 280); /* Light gray with purple undertone */
-  --muted-foreground: oklch(0.52 0.015 280); /* Neutral gray */
-
-  /* Accent using warm seashell */
-  --accent: oklch(0.9 0.02 25); /* Warm seashell accent */
-  --accent-foreground: oklch(0.35 0.02 280);
-
-  --destructive: oklch(0.65 0.2 25);
-  --destructive-foreground: oklch(0.98 0.005 45);
-
-  /* Borders and inputs */
-  --border: oklch(0.85 0.012 280); /* Subtle pewter border */
-  --input: oklch(0.9 0.008 280); /* Light input background */
-  --ring: oklch(0.55 0.02 280); /* Pewter ring */
-
-  /* Charts with warmer tones */
-  --chart-1: oklch(0.7 0.15 25); /* Warm coral */
-  --chart-2: oklch(0.65 0.12 280); /* Muted purple */
-  --chart-3: oklch(0.6 0.08 200); /* Soft blue */
-  --chart-4: oklch(0.75 0.1 45); /* Warm gold */
-  --chart-5: oklch(0.55 0.15 320); /* Soft pink */
-
-  /* Sidebar with warm tones */
-  --sidebar: oklch(0.94 0.01 45); /* Warm ivory sidebar */
-  --sidebar-foreground: oklch(0.25 0.02 280);
-  --sidebar-primary: oklch(0.55 0.02 280); /* Pewter */
-  --sidebar-primary-foreground: oklch(0.98 0.005 45);
-  --sidebar-accent: oklch(0.88 0.025 25); /* Seashell accent */
-  --sidebar-accent-foreground: oklch(0.35 0.02 280);
-  --sidebar-border: oklch(0.85 0.012 280);
-  --sidebar-ring: oklch(0.55 0.02 280);
-
-  /* New modern color variables */
-  --warm-seashell: oklch(0.88 0.025 25); /* #E7D2CC equivalent */
-  --warm-seashell-foreground: oklch(0.35 0.02 280);
-  --pewter: oklch(0.72 0.015 280); /* #B9B7BD equivalent */
-  --pewter-foreground: oklch(0.98 0.005 45);
-  --neutral-gray: oklch(0.55 0.008 280); /* #868B8E equivalent */
-  --neutral-gray-foreground: oklch(0.98 0.005 45);
-  --warm-ivory: oklch(0.96 0.008 45); /* #EEEDE7 equivalent */
-  --warm-ivory-foreground: oklch(0.25 0.02 280);
+  /* Main app background - light gray from your image */
+  --background: oklch(0.98 0 0);
+  --foreground: oklch(0.15 0 0);
+  /* Card background - almost white for input areas */
+  --card: oklch(0.995 0 0);
+  --card-foreground: oklch(0.15 0 0);
+  --popover: oklch(0.995 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+  /* Primary colors - keeping original for buttons/links */
+  --primary: oklch(0.21 0.006 285.885);
+  --primary-foreground: oklch(0.985 0 0);
+  /* Secondary - slightly darker than background for subtle elements */
+  --secondary: oklch(0.94 0 0);
+  --secondary-foreground: oklch(0.25 0 0);
+  /* Muted - light gray for less prominent text/backgrounds */
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+  /* Accent - same as secondary for consistency */
+  --accent: oklch(0.94 0 0);
+  --accent-foreground: oklch(0.25 0 0);
+  --destructive: oklch(0.637 0.237 25.331);
+  --destructive-foreground: oklch(0.985 0 0);
+  /* Borders - more visible gray for better contrast */
+  --border: oklch(0.85 0 0);
+  /* Input background - almost white like your image */
+  --input: oklch(0.995 0 0);
+  --ring: oklch(0.75 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  /* Sidebar - exact color #292929 as requested */
+  --sidebar: #292929;
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.21 0.006 285.885);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  /* Sidebar accent - slightly lighter than sidebar background */
+  --sidebar-accent: oklch(0.22 0 0);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  /* Sidebar borders - slightly lighter than background */
+  --sidebar-border: oklch(0.35 0 0);
+  --sidebar-ring: oklch(0.5 0 0);
 }
 
 .dark {
-  /* Main dark colors - much more colorful and vibrant */
-  --background: oklch(0.25 0.02 280); /* Rich purple-gray instead of black */
-  --foreground: oklch(0.95 0.01 45); /* Bright warm ivory text */
-  --card: oklch(0.3 0.025 280); /* Colorful dark cards */
-  --card-foreground: oklch(0.95 0.01 45);
-  --popover: oklch(0.3 0.025 280);
-  --popover-foreground: oklch(0.95 0.01 45);
-
-  /* Primary using vibrant pewter for dark mode */
-  --primary: oklch(0.75 0.04 280); /* Much brighter, more saturated pewter */
-  --primary-foreground: oklch(0.15 0.015 280);
-
-  /* Secondary using vibrant seashell */
-  --secondary: oklch(0.4 0.03 25); /* Richer seashell color */
-  --secondary-foreground: oklch(0.95 0.01 45);
-
-  /* Muted using colorful grays */
-  --muted: oklch(0.35 0.02 280); /* More colorful muted background */
-  --muted-foreground: oklch(0.75 0.025 280); /* Brighter muted text */
-
-  /* Accent using vibrant warm seashell */
-  --accent: oklch(0.38 0.03 25); /* Rich warm accent */
-  --accent-foreground: oklch(0.95 0.01 45);
-
-  --destructive: oklch(0.65 0.22 25); /* Brighter destructive */
-  --destructive-foreground: oklch(0.95 0.01 45);
-
-  /* Borders and inputs with visible color */
-  --border: oklch(0.45 0.025 280); /* Much more visible pewter borders */
-  --input: oklch(0.28 0.02 280); /* Colorful input backgrounds */
-  --ring: oklch(0.75 0.04 280); /* Bright pewter focus rings */
-
-  /* Charts with vibrant dark tones */
-  --chart-1: oklch(0.7 0.18 25); /* Vibrant coral */
-  --chart-2: oklch(0.65 0.15 280); /* Rich purple */
-  --chart-3: oklch(0.6 0.12 200); /* Vibrant blue */
-  --chart-4: oklch(0.75 0.15 45); /* Rich gold */
-  --chart-5: oklch(0.55 0.18 320); /* Vibrant pink */
-
-  /* Sidebar with rich, colorful tones */
-  --sidebar: oklch(0.22 0.018 280); /* Colorful dark sidebar */
-  --sidebar-foreground: oklch(0.95 0.01 45);
-  --sidebar-primary: oklch(0.75 0.04 280); /* Bright pewter */
-  --sidebar-primary-foreground: oklch(0.15 0.015 280);
-  --sidebar-accent: oklch(0.38 0.03 25); /* Rich seashell accent */
-  --sidebar-accent-foreground: oklch(0.95 0.01 45);
-  --sidebar-border: oklch(0.45 0.025 280);
-  --sidebar-ring: oklch(0.75 0.04 280);
-
-  /* Dark mode versions of new colors - much more vibrant */
-  --warm-seashell: oklch(0.6 0.04 25); /* Much brighter seashell */
-  --warm-seashell-foreground: oklch(0.15 0.015 280);
-  --pewter: oklch(0.75 0.04 280); /* Vibrant pewter */
-  --pewter-foreground: oklch(0.15 0.015 280);
-  --neutral-gray: oklch(0.7 0.025 280); /* Bright neutral gray */
-  --neutral-gray-foreground: oklch(0.15 0.015 280);
-  --warm-ivory: oklch(0.32 0.02 45); /* Rich warm background tone */
-  --warm-ivory-foreground: oklch(0.95 0.01 45);
+  /* Main app background - comfortable dark gray, not black */
+  --background: oklch(0.18 0.005 285.823);
+  --foreground: oklch(0.95 0 0);
+  /* Card background - slightly lighter than background for distinction */
+  --card: oklch(0.22 0.005 285.823);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.22 0.005 285.823);
+  --popover-foreground: oklch(0.95 0 0);
+  /* Primary colors - bright but not harsh */
+  --primary: oklch(0.7 0.15 260);
+  --primary-foreground: oklch(0.98 0 0);
+  /* Secondary - slightly lighter than card for subtle elements */
+  --secondary: oklch(0.26 0.005 285.823);
+  --secondary-foreground: oklch(0.85 0 0);
+  /* Muted - darker than secondary for less prominent backgrounds */
+  --muted: oklch(0.24 0.005 285.823);
+  --muted-foreground: oklch(0.65 0.005 285.823);
+  /* Accent - same as secondary for consistency */
+  --accent: oklch(0.26 0.005 285.823);
+  --accent-foreground: oklch(0.85 0 0);
+  --destructive: oklch(0.6 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  /* Borders - visible but not harsh */
+  --border: oklch(0.3 0.005 285.823);
+  /* Input background - slightly different from card */
+  --input: oklch(0.23 0.005 285.823);
+  --ring: oklch(0.5 0.1 260);
+  --chart-1: oklch(0.7 0.15 260);
+  --chart-2: oklch(0.65 0.15 200);
+  --chart-3: oklch(0.6 0.15 120);
+  --chart-4: oklch(0.65 0.15 60);
+  --chart-5: oklch(0.7 0.15 300);
+  /* Sidebar - darker than main background for hierarchy */
+  --sidebar: oklch(0.15 0.005 285.823);
+  --sidebar-foreground: oklch(0.9 0 0);
+  --sidebar-primary: oklch(0.7 0.15 260);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  /* Sidebar accent - slightly lighter than sidebar background */
+  --sidebar-accent: oklch(0.2 0.005 285.823);
+  --sidebar-accent-foreground: oklch(0.9 0 0);
+  /* Sidebar borders - subtle but visible */
+  --sidebar-border: oklch(0.25 0.005 285.823);
+  --sidebar-ring: oklch(0.5 0.1 260);
 }
 
 @layer base {
@@ -186,11 +145,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(
-      135deg,
-      var(--background) 0%,
-      var(--warm-ivory) 100%
-    );
     height: 100%;
     margin: 0;
     padding: 0;
@@ -200,57 +154,15 @@
   }
 }
 
-/* Custom utility classes for the new color palette */
+/* Custom utilities for ensuring proper color application */
 @layer utilities {
-  .bg-warm-seashell {
-    background-color: var(--warm-seashell);
+  .chat-background {
+    background-color: var(--background);
   }
-  .text-warm-seashell {
-    color: var(--warm-seashell);
+  .chat-input-background {
+    background-color: var(--card);
   }
-  .text-warm-seashell-foreground {
-    color: var(--warm-seashell-foreground);
-  }
-  .border-warm-seashell {
-    border-color: var(--warm-seashell);
-  }
-
-  .bg-pewter {
-    background-color: var(--pewter);
-  }
-  .text-pewter {
-    color: var(--pewter);
-  }
-  .text-pewter-foreground {
-    color: var(--pewter-foreground);
-  }
-  .border-pewter {
-    border-color: var(--pewter);
-  }
-
-  .bg-neutral-gray {
-    background-color: var(--neutral-gray);
-  }
-  .text-neutral-gray {
-    color: var(--neutral-gray);
-  }
-  .text-neutral-gray-foreground {
-    color: var(--neutral-gray-foreground);
-  }
-  .border-neutral-gray {
-    border-color: var(--neutral-gray);
-  }
-
-  .bg-warm-ivory {
-    background-color: var(--warm-ivory);
-  }
-  .text-warm-ivory {
-    color: var(--warm-ivory);
-  }
-  .text-warm-ivory-foreground {
-    color: var(--warm-ivory-foreground);
-  }
-  .border-warm-ivory {
-    border-color: var(--warm-ivory);
+  .sidebar-background {
+    background-color: var(--sidebar);
   }
 }

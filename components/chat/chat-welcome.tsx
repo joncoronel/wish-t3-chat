@@ -59,8 +59,8 @@ export function ChatWelcome({
         {/* Category buttons */}
         <div className="mb-12 flex flex-wrap justify-center gap-3">
           <Button
-            variant={selectedCategory === "create" ? "seashell" : "outline"}
-            className="hover:border-warm-seashell/50 flex items-center gap-2 px-4 py-2"
+            variant={selectedCategory === "create" ? "default" : "outline"}
+            className="flex items-center gap-2 px-4 py-2"
             onClick={() =>
               onCategoryChange(
                 selectedCategory === "create" ? "default" : "create",
@@ -71,8 +71,8 @@ export function ChatWelcome({
             Create
           </Button>
           <Button
-            variant={selectedCategory === "explore" ? "pewter" : "outline"}
-            className="hover:border-pewter/50 flex items-center gap-2 px-4 py-2"
+            variant={selectedCategory === "explore" ? "default" : "outline"}
+            className="flex items-center gap-2 px-4 py-2"
             onClick={() =>
               onCategoryChange(
                 selectedCategory === "explore" ? "default" : "explore",
@@ -84,7 +84,7 @@ export function ChatWelcome({
           </Button>
           <Button
             variant={selectedCategory === "code" ? "default" : "outline"}
-            className="hover:border-neutral-gray/50 flex items-center gap-2 px-4 py-2"
+            className="flex items-center gap-2 px-4 py-2"
             onClick={() =>
               onCategoryChange(selectedCategory === "code" ? "default" : "code")
             }
@@ -93,8 +93,8 @@ export function ChatWelcome({
             Code
           </Button>
           <Button
-            variant={selectedCategory === "learn" ? "secondary" : "outline"}
-            className="hover:border-secondary/50 flex items-center gap-2 px-4 py-2"
+            variant={selectedCategory === "learn" ? "default" : "outline"}
+            className="flex items-center gap-2 px-4 py-2"
             onClick={() =>
               onCategoryChange(
                 selectedCategory === "learn" ? "default" : "learn",
@@ -112,7 +112,7 @@ export function ChatWelcome({
             <Button
               key={prompt}
               variant="ghost"
-              className="text-muted-foreground hover:text-pewter hover:bg-warm-seashell/10 w-full justify-start text-left"
+              className="text-muted-foreground hover:text-foreground w-full justify-start text-left"
               onClick={() => onSendMessage(prompt)}
             >
               {prompt}

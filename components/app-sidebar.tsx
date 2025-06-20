@@ -157,12 +157,9 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar
-      variant="floating"
-      className="bg-background w-64 flex-shrink-0 overflow-hidden"
-    >
+    <Sidebar variant="floating" className="w-64 flex-shrink-0 overflow-hidden">
       <SidebarHeader>
-        <div className="text-pewter py-2 text-center text-sm font-medium">
+        <div className="text-sidebar-foreground py-2 text-center text-sm font-medium">
           Wish T3 Chat
         </div>
       </SidebarHeader>
@@ -172,8 +169,8 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
         <div className="flex-shrink-0 p-2">
           <Button
             onClick={navigateToNewChat}
-            className="border-pewter/30 hover:bg-warm-seashell/10 hover:border-pewter/50 h-9 w-full justify-start gap-2"
-            variant="outline"
+            className="bg-sidebar-foreground text-sidebar hover:bg-sidebar-foreground/90 h-9 w-full justify-start gap-2"
+            variant="default"
           >
             <Plus className="h-4 w-4" />
             New chat
@@ -184,12 +181,12 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
           <SidebarGroupLabel>Search</SidebarGroupLabel>
           <SidebarGroupContent>
             <div className="relative">
-              <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
+              <Search className="text-sidebar-foreground/50 absolute top-2.5 left-2 h-4 w-4" />
               <SidebarInput
                 placeholder="Search conversations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8"
+                className="bg-sidebar-accent/80 border-sidebar-border/50 text-sidebar-foreground placeholder:text-sidebar-foreground/70 focus-visible:bg-sidebar-accent focus-visible:border-sidebar-border focus-visible:ring-sidebar-foreground/20 border pl-8 focus-visible:ring-1"
               />
             </div>
           </SidebarGroupContent>
@@ -213,7 +210,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
               >
                 <div className="w-full min-w-0 overflow-hidden p-2">
                   {filteredConversations.length === 0 ? (
-                    <div className="text-muted-foreground py-8 text-center">
+                    <div className="text-sidebar-foreground/70 py-8 text-center">
                       <MessageSquare className="mx-auto mb-2 h-8 w-8 opacity-50" />
                       <p className="text-sm">No conversations yet</p>
                       <p className="text-xs">Start a new chat to get going</p>
@@ -221,7 +218,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
                   ) : (
                     sortedGroups.map((groupName) => (
                       <div key={groupName} className="mb-2">
-                        <div className="text-muted-foreground p-2 text-xs font-medium">
+                        <div className="text-sidebar-foreground/70 p-2 text-xs font-medium">
                           {groupName}
                         </div>
                         <SidebarMenu className="overflow-hidden">
@@ -254,7 +251,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
                                     )}
                                   </div>
                                   {isChatLoading(conversation.id) && (
-                                    <Loader2 className="text-muted-foreground absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin" />
+                                    <Loader2 className="text-sidebar-foreground/70 absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin" />
                                   )}
                                 </SidebarMenuButton>
                                 <AlertDialog>
@@ -320,7 +317,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
           {/* User Account Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors">
+              <button className="hover:bg-sidebar-accent hover:text-sidebar-foreground text-sidebar-foreground flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user.user_metadata?.avatar_url} />
                   <AvatarFallback>
@@ -333,7 +330,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
                   <p className="truncate text-sm font-medium">
                     {user.user_metadata?.full_name || "User"}
                   </p>
-                  <p className="text-muted-foreground truncate text-xs">
+                  <p className="text-sidebar-foreground/70 truncate text-xs">
                     {user.email}
                   </p>
                 </div>
@@ -367,7 +364,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
           </DropdownMenu>
 
           {/* Footer Text */}
-          <div className="text-muted-foreground text-center text-xs">
+          <div className="text-sidebar-foreground/60 text-center text-xs">
             <p>Built with ❤️ for T3 Chat Clone</p>
           </div>
         </div>

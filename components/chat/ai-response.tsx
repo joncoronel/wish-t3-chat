@@ -267,7 +267,7 @@ const CodeBlock = ({
     // Fallback for when syntax highlighting fails
     return (
       <div className="not-prose my-4 h-auto w-full overflow-hidden rounded-md border">
-        <div className="bg-secondary flex flex-row items-center border-b p-1">
+        <div className="bg-secondary text-secondary-foreground flex flex-row items-center border-b p-1">
           <div className="flex grow flex-row items-center gap-2">
             <div className="bg-secondary text-muted-foreground flex items-center gap-2 px-4 py-1.5 text-xs">
               {(() => {
@@ -311,7 +311,7 @@ const CodeBlock = ({
   return (
     <div className="not-prose my-4 h-auto w-full overflow-hidden rounded-md border">
       {/* Header */}
-      <div className="bg-secondary flex flex-row items-center border-b p-1">
+      <div className="bg-secondary text-secondary-foreground flex flex-row items-center border-b p-1">
         <div className="flex grow flex-row items-center gap-2">
           <div className="bg-secondary text-muted-foreground flex items-center gap-2 px-4 py-1.5 text-xs">
             {(() => {
@@ -471,7 +471,10 @@ const components: Options["components"] = {
     if (!className || !className.includes("language-")) {
       return (
         <code
-          className={cn("bg-muted rounded px-1 py-0.5 text-sm", className)}
+          className={cn(
+            "bg-muted text-muted-foreground rounded px-1 py-0.5 text-sm",
+            className,
+          )}
           {...props}
         >
           {children}

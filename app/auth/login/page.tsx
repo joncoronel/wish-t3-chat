@@ -2,10 +2,10 @@ import { login, signup } from "@/lib/auth/actions";
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="bg-background flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="text-foreground mt-6 text-center text-3xl font-extrabold">
             Sign in to your account
           </h2>
         </div>
@@ -22,7 +22,7 @@ export default function LoginPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="relative block w-full appearance-none rounded-none rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm"
+                className="border-border bg-card text-foreground placeholder-muted-foreground focus-visible:ring-ring/50 relative block w-full appearance-none rounded-none rounded-t-md border px-3 py-2 transition-[color,box-shadow] focus:z-10 focus:outline-none focus-visible:ring-[3px] sm:text-sm"
                 placeholder="Email address"
               />
             </div>
@@ -36,7 +36,7 @@ export default function LoginPage() {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="relative block w-full appearance-none rounded-none rounded-b-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm"
+                className="border-border bg-card text-foreground placeholder-muted-foreground focus-visible:ring-ring/50 relative block w-full appearance-none rounded-none rounded-b-md border px-3 py-2 transition-[color,box-shadow] focus:z-10 focus:outline-none focus-visible:ring-[3px] sm:text-sm"
                 placeholder="Password"
               />
             </div>
@@ -45,13 +45,13 @@ export default function LoginPage() {
           <div className="flex space-x-4">
             <button
               formAction={login}
-              className="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+              className="group bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/50 relative flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium transition-[color,box-shadow] focus:outline-none focus-visible:ring-[3px]"
             >
               Sign in
             </button>
             <button
               formAction={signup}
-              className="group relative flex w-full justify-center rounded-md border border-indigo-600 border-transparent bg-white px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+              className="group border-primary bg-card text-primary hover:bg-secondary hover:text-secondary-foreground focus-visible:ring-ring/50 relative flex w-full justify-center rounded-md border px-4 py-2 text-sm font-medium transition-[color,box-shadow] focus:outline-none focus-visible:ring-[3px]"
             >
               Sign up
             </button>
