@@ -213,7 +213,7 @@ export function SettingsForm({ userId }: SettingsFormProps) {
       {/* Storage Mode Settings */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="border-primary flex items-center gap-2 border-l-4 pl-4">
             <Settings className="h-5 w-5" />
             API Key Storage
           </CardTitle>
@@ -408,120 +408,125 @@ export function SettingsForm({ userId }: SettingsFormProps) {
           AI_PROVIDERS[provider as keyof typeof AI_PROVIDERS]?.models || [];
 
         return (
-          <Card key={provider} className="relative">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{info.icon}</span>
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      {info.name}
-                      {hasSavedKey && (
-                        <Badge variant="secondary">
-                          <Key className="mr-1 h-3 w-3" />
-                          Configured
-                        </Badge>
-                      )}
-                    </CardTitle>
-                    <CardDescription>
-                      Add your {info.name} API key to access their models
-                    </CardDescription>
-                  </div>
-                </div>
-                <Button variant="secondary" size="sm" asChild>
-                  <a
-                    href={info.getKeyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Get API Key
-                  </a>
-                </Button>
-              </div>
+          <Card key={provider} className="overflow-hidden">
+            <CardHeader className="bg-muted/50 border-b">
+              <CardTitle className="border-primary border-l-4 pl-4 text-lg">
+                {info.name}
+              </CardTitle>
             </CardHeader>
+            <CardContent className="p-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{info.icon}</span>
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        {info.name}
+                        {hasSavedKey && (
+                          <Badge variant="secondary">
+                            <Key className="mr-1 h-3 w-3" />
+                            Configured
+                          </Badge>
+                        )}
+                      </CardTitle>
+                      <CardDescription>
+                        Add your {info.name} API key to access their models
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Button variant="secondary" size="sm" asChild>
+                    <a
+                      href={info.getKeyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Get API Key
+                    </a>
+                  </Button>
+                </div>
 
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor={`${provider}-key`}>API Key</Label>
-                <div className="relative">
-                  <Input
-                    id={`${provider}-key`}
-                    type={localKeyState.isVisible ? "text" : "password"}
-                    placeholder={
-                      hasSavedKey ? "••••••••••••••••" : info.placeholder
-                    }
-                    value={localKeyState.value}
-                    onChange={(e) =>
-                      updateLocalApiKey(provider, e.target.value)
-                    }
-                    className="pr-20"
-                    disabled={
-                      apiKeyStorageMode === "encrypted" &&
-                      !isEncryptionAvailable
-                    }
-                  />
-                  <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={() => toggleVisibility(provider)}
+                <div className="space-y-2">
+                  <Label htmlFor={`${provider}-key`}>API Key</Label>
+                  <div className="relative">
+                    <Input
+                      id={`${provider}-key`}
+                      type={localKeyState.isVisible ? "text" : "password"}
+                      placeholder={
+                        hasSavedKey ? "••••••••••••••••" : info.placeholder
+                      }
+                      value={localKeyState.value}
+                      onChange={(e) =>
+                        updateLocalApiKey(provider, e.target.value)
+                      }
+                      className="pr-20"
                       disabled={
                         apiKeyStorageMode === "encrypted" &&
                         !isEncryptionAvailable
                       }
-                    >
-                      {localKeyState.isVisible ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                    {(localKeyState.value || hasSavedKey) && (
+                    />
+                    <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="text-destructive h-8 w-8 p-0"
-                        onClick={() => removeApiKey(provider)}
+                        className="h-8 w-8 p-0"
+                        onClick={() => toggleVisibility(provider)}
                         disabled={
-                          loading ||
-                          (apiKeyStorageMode === "encrypted" &&
-                            !isEncryptionAvailable)
+                          apiKeyStorageMode === "encrypted" &&
+                          !isEncryptionAvailable
                         }
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {localKeyState.isVisible ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
-                    )}
+                      {(localKeyState.value || hasSavedKey) && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive h-8 w-8 p-0"
+                          onClick={() => removeApiKey(provider)}
+                          disabled={
+                            loading ||
+                            (apiKeyStorageMode === "encrypted" &&
+                              !isEncryptionAvailable)
+                          }
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Available models */}
-              {availableModels.length > 0 && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">
-                    Available Models
-                  </Label>
-                  <div className="flex flex-wrap gap-1">
-                    {availableModels.slice(0, 6).map((model) => (
-                      <Badge
-                        key={model.id}
-                        variant="outline"
-                        className="text-xs"
-                      >
-                        {model.name}
-                      </Badge>
-                    ))}
-                    {availableModels.length > 6 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{availableModels.length - 6} more
-                      </Badge>
-                    )}
+                {/* Available models */}
+                {availableModels.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Available Models
+                    </Label>
+                    <div className="flex flex-wrap gap-1">
+                      {availableModels.slice(0, 6).map((model) => (
+                        <Badge
+                          key={model.id}
+                          variant="outline"
+                          className="text-xs"
+                        >
+                          {model.name}
+                        </Badge>
+                      ))}
+                      {availableModels.length > 6 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{availableModels.length - 6} more
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </CardContent>
           </Card>
         );

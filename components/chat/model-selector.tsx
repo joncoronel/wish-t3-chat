@@ -86,11 +86,11 @@ function getProviderIcon(provider: string) {
 function getProviderColor(provider: string) {
   switch (provider.toLowerCase()) {
     case "openai":
-      return "text-green-600 dark:text-green-400";
+      return "text-[color-mix(in_oklch,_hsl(var(--primary))_70%,_green)] dark:text-[color-mix(in_oklch,_hsl(var(--primary))_60%,_green)]";
     case "anthropic":
       return "text-orange-600 dark:text-orange-400";
     case "google":
-      return "text-blue-600 dark:text-blue-400";
+      return "text-[color-mix(in_oklch,_hsl(var(--primary))_75%,_black)] dark:text-[color-mix(in_oklch,_hsl(var(--primary))_60%,_white)]";
     case "openrouter":
       return "text-purple-600 dark:text-purple-400";
     default:
@@ -320,7 +320,7 @@ export function ModelSelector({
                       {/* Current selection indicator */}
                       <CheckIcon
                         className={cn(
-                          "h-4 w-4 text-green-600 dark:text-green-400",
+                          "h-4 w-4 text-[color-mix(in_oklch,_hsl(var(--primary))_75%,_black)] dark:text-[color-mix(in_oklch,_hsl(var(--primary))_65%,_white)]",
                           !isCurrentModel && "invisible",
                         )}
                       />
@@ -406,7 +406,7 @@ export function ModelSelector({
                       {/* Current selection indicator */}
                       <CheckIcon
                         className={cn(
-                          "h-4 w-4 text-green-600 dark:text-green-400",
+                          "h-4 w-4 text-[color-mix(in_oklch,_hsl(var(--primary))_75%,_black)] dark:text-[color-mix(in_oklch,_hsl(var(--primary))_65%,_white)]",
                           !isCurrentModel && "invisible",
                         )}
                       />
@@ -492,7 +492,7 @@ export function ModelSelector({
                       {/* Current selection indicator */}
                       <CheckIcon
                         className={cn(
-                          "h-4 w-4 text-green-600 dark:text-green-400",
+                          "h-4 w-4 text-[color-mix(in_oklch,_hsl(var(--primary))_75%,_black)] dark:text-[color-mix(in_oklch,_hsl(var(--primary))_65%,_white)]",
                           !isCurrentModel && "invisible",
                         )}
                       />

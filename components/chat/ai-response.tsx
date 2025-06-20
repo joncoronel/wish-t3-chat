@@ -266,10 +266,11 @@ const CodeBlock = ({
   if (!html) {
     // Fallback for when syntax highlighting fails
     return (
-      <div className="not-prose my-4 h-auto w-full overflow-hidden rounded-md border">
-        <div className="bg-secondary text-secondary-foreground flex flex-row items-center border-b p-1">
+      <div className="not-prose border-primary/30 dark:border-primary/20 my-4 h-auto w-full overflow-hidden rounded-md border">
+        {/* Header */}
+        <div className="bg-primary/20 dark:bg-primary/10 text-secondary-foreground border-primary/30 dark:border-primary/20 flex flex-row items-center border-b p-1">
           <div className="flex grow flex-row items-center gap-2">
-            <div className="bg-secondary text-muted-foreground flex items-center gap-2 px-4 py-1.5 text-xs">
+            <div className="text-muted-foreground flex items-center gap-2 bg-transparent px-4 py-1.5 text-xs">
               {(() => {
                 const Icon = getIconForFilename(filename);
                 console.log("Fallback Filename:", filename, "Icon:", Icon);
@@ -293,7 +294,7 @@ const CodeBlock = ({
             <CopyButton code={code} />
           </div>
         </div>
-        <div className="bg-background mt-0 text-sm">
+        <div className="bg-card dark:bg-muted mt-0 text-sm">
           <pre className="py-4">
             <code className="grid w-full overflow-x-auto bg-transparent">
               {code.split("\n").map((line, i) => (
@@ -309,11 +310,11 @@ const CodeBlock = ({
   }
 
   return (
-    <div className="not-prose my-4 h-auto w-full overflow-hidden rounded-md border">
+    <div className="not-prose border-primary/30 dark:border-primary/20 my-4 h-auto w-full overflow-hidden rounded-md border">
       {/* Header */}
-      <div className="bg-secondary text-secondary-foreground flex flex-row items-center border-b p-1">
+      <div className="bg-primary/20 dark:bg-primary/10 text-secondary-foreground border-primary/30 dark:border-primary/20 flex flex-row items-center border-b p-1">
         <div className="flex grow flex-row items-center gap-2">
-          <div className="bg-secondary text-muted-foreground flex items-center gap-2 px-4 py-1.5 text-xs">
+          <div className="text-muted-foreground flex items-center gap-2 bg-transparent px-4 py-1.5 text-xs">
             {(() => {
               const Icon = getIconForFilename(filename);
               console.log("Filename:", filename, "Icon:", Icon);
@@ -341,9 +342,9 @@ const CodeBlock = ({
       {/* Content */}
       <div
         className={cn(
-          "bg-background mt-0 text-sm",
+          "mt-0 text-sm",
           "[&_pre]:py-4",
-          "[&_.shiki]:!bg-[var(--shiki-bg)]",
+          "[&_.shiki]:!bg-card",
           "[&_code]:w-full",
           "[&_code]:grid",
           "[&_code]:overflow-x-auto",
@@ -353,7 +354,7 @@ const CodeBlock = ({
           "[&_.line]:relative",
           // Dark mode styles
           "dark:[&_.shiki]:!text-[var(--shiki-dark)]",
-          "dark:[&_.shiki]:!bg-[var(--shiki-dark-bg)]",
+          "dark:[&_.shiki]:!bg-muted",
           "dark:[&_.shiki]:![font-style:var(--shiki-dark-font-style)]",
           "dark:[&_.shiki]:![font-weight:var(--shiki-dark-font-weight)]",
           "dark:[&_.shiki]:![text-decoration:var(--shiki-dark-text-decoration)]",
@@ -362,14 +363,14 @@ const CodeBlock = ({
           "dark:[&_.shiki_span]:![font-weight:var(--shiki-dark-font-weight)]",
           "dark:[&_.shiki_span]:![text-decoration:var(--shiki-dark-text-decoration)]",
           // Line highlighting
-          "[&_.line.highlighted]:bg-blue-50",
-          "[&_.line.highlighted]:after:bg-blue-500",
+          "[&_.line.highlighted]:bg-[color-mix(in_oklch,_hsl(var(--primary))_8%,_transparent)]",
+          "[&_.line.highlighted]:after:bg-primary",
           "[&_.line.highlighted]:after:absolute",
           "[&_.line.highlighted]:after:left-0",
           "[&_.line.highlighted]:after:top-0",
           "[&_.line.highlighted]:after:bottom-0",
           "[&_.line.highlighted]:after:w-0.5",
-          "dark:[&_.line.highlighted]:!bg-blue-500/10",
+          "dark:[&_.line.highlighted]:!bg-[color-mix(in_oklch,_hsl(var(--primary))_12%,_transparent)]",
           // Diff highlighting
           "[&_.line.diff]:after:absolute",
           "[&_.line.diff]:after:left-0",
@@ -386,11 +387,11 @@ const CodeBlock = ({
           "[&_code:has(.focused)_.line]:blur-[2px]",
           "[&_code:has(.focused)_.line.focused]:blur-none",
           // Word highlighting
-          "[&_.highlighted-word]:bg-blue-50",
-          "dark:[&_.highlighted-word]:!bg-blue-500/10",
+          "bg-[color-mix(in_oklch,_hsl(var(--primary))_25%,_transparent)]! [&_.highlighted-word]:rounded-sm",
+          "dark:[&_.highlighted-word]:!bg-[color-mix(in_oklch,_hsl(var(--primary))_30%,_transparent)]!",
         )}
       >
-        <div dangerouslySetInnerHTML={{ __html: html }} />
+        <div dangerouslySetInnerHTML={{ __html: html || "" }} />
       </div>
     </div>
   );
@@ -472,7 +473,7 @@ const components: Options["components"] = {
       return (
         <code
           className={cn(
-            "bg-muted text-muted-foreground rounded px-1 py-0.5 text-sm",
+            "dark:text-primary dark:bg-primary/25 bg-primary/20 text-primary-foreground rounded px-1 py-0.5 text-sm font-medium",
             className,
           )}
           {...props}

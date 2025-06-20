@@ -50,7 +50,7 @@ export function FileAttachment({
       return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
     if (isPDF)
       return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-    return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+    return "bg-[color-mix(in_oklch,_hsl(var(--primary))_15%,_transparent)] text-[color-mix(in_oklch,_hsl(var(--primary))_85%,_black)] dark:bg-[color-mix(in_oklch,_hsl(var(--primary))_25%,_transparent)] dark:text-[color-mix(in_oklch,_hsl(var(--primary))_70%,_white)]";
   };
 
   const handleDownload = async () => {

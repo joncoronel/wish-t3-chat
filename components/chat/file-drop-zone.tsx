@@ -57,7 +57,9 @@ export function FileDropZone({
       return <Image className="h-5 w-5 text-green-600 dark:text-green-400" />;
     }
 
-    return <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
+    return (
+      <FileText className="h-5 w-5 text-[color-mix(in_oklch,_hsl(var(--primary))_75%,_black)] dark:text-[color-mix(in_oklch,_hsl(var(--primary))_60%,_white)]" />
+    );
   };
 
   const getFileSize = (file: FileWithPreview) => {
