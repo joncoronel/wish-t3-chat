@@ -362,11 +362,6 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* Footer Text */}
-          <div className="text-sidebar-foreground/60 text-center text-xs">
-            <p>Built with ❤️ for T3 Chat Clone</p>
-          </div>
         </div>
       </SidebarFooter>
     </Sidebar>

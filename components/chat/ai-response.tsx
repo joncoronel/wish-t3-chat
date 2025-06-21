@@ -295,8 +295,8 @@ const CodeBlock = ({
           </div>
         </div>
         <div className="bg-card dark:bg-muted mt-0 text-sm">
-          <pre className="py-4">
-            <code className="grid w-full overflow-x-auto bg-transparent">
+          <pre className="py-0">
+            <code className="grid w-full overflow-x-auto bg-transparent py-4">
               {code.split("\n").map((line, i) => (
                 <span key={i} className="relative w-full px-4">
                   {line}
@@ -343,12 +343,13 @@ const CodeBlock = ({
       <div
         className={cn(
           "mt-0 text-sm",
-          "[&_pre]:py-4",
+          "[&_pre]:py-0",
           "[&_.shiki]:!bg-card",
           "[&_code]:w-full",
           "[&_code]:grid",
           "[&_code]:overflow-x-auto",
           "[&_code]:bg-transparent",
+          "[&_code]:py-4",
           "[&_.line]:px-4",
           "[&_.line]:w-full",
           "[&_.line]:relative",
