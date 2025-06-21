@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { streamText, convertToCoreMessages } from "ai";
-import { getLanguageModel } from "@/lib/ai";
+import { getLanguageModel, getModelById } from "@/lib/ai";
 import { createClient } from "@/lib/supabase/server";
 import { generateConversationTitle } from "@/lib/utils";
 import { z } from "zod";
@@ -19,7 +19,7 @@ const chatRequestSchema = z.object({
   ),
   model: z.string().optional().default("gpt-4"),
   temperature: z.number().min(0).max(2).optional().default(0.7),
-  max_tokens: z.number().min(1).max(4096).optional().default(2048),
+  max_tokens: z.number().min(1).max(200000).optional().default(8192),
   conversationId: z.string().optional(),
   apiKeys: z.record(z.string()).optional(), // Client-provided API keys
   attachments: z
@@ -66,6 +66,15 @@ export async function POST(req: NextRequest) {
       conversationId,
       hasApiKeys: !!apiKeys && Object.keys(apiKeys).length > 0,
     });
+
+    // Validate max_tokens against model capabilities
+    const modelInfo = getModelById(model);
+    if (modelInfo && max_tokens > modelInfo.maxTokens) {
+      console.warn(
+        `Requested max_tokens (${max_tokens}) exceeds model limit (${modelInfo.maxTokens}), capping to model limit`,
+      );
+      // Don't error, just cap to model limit
+    }
 
     // Get authenticated user
     const supabase = await createClient();

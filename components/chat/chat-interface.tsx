@@ -18,6 +18,7 @@ import { useChatUrl } from "@/hooks/use-chat-url";
 import { useChatLoading } from "@/hooks/use-chat-loading";
 import { useGlobalModel } from "@/hooks/use-global-model";
 import { useApiKeysUnified } from "@/hooks/use-api-keys-unified";
+import { getModelById } from "@/lib/ai";
 import { ChatWelcome } from "./chat-welcome";
 import { ChatMessages } from "./chat-messages";
 
@@ -57,6 +58,26 @@ export function ChatInterface({
   const { navigateToChat } = useChatUrl();
   const { setLoading } = useChatLoading();
   const { selectedModel } = useGlobalModel();
+
+  // Calculate appropriate max_tokens based on the selected model
+  const getMaxTokensForModel = useCallback((modelId: string) => {
+    const model = getModelById(modelId);
+    if (!model) return 8192; // fallback default
+
+    // Use a reasonable percentage of the model's max capacity for responses
+    // This leaves room for the conversation context
+    const maxResponseTokens = Math.min(
+      Math.floor(model.maxTokens * 0.3), // Use 30% of model's capacity for response
+      32768, // Cap at 32k tokens for reasonable response length
+    );
+
+    return Math.max(maxResponseTokens, 4096); // Minimum 4k tokens
+  }, []);
+
+  const maxTokens = useMemo(
+    () => getMaxTokensForModel(selectedModel),
+    [selectedModel, getMaxTokensForModel],
+  );
 
   const { apiKeys, isLoading: isLoadingApiKeys } = useApiKeysUnified({
     userId: userId || "",
@@ -161,7 +182,7 @@ export function ChatInterface({
     body: {
       model: selectedModel,
       temperature: 0.7,
-      max_tokens: 2048,
+      max_tokens: maxTokens,
       conversationId: currentConversationId,
       apiKeys: stableApiKeys,
     },
