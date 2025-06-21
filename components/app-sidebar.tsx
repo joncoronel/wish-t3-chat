@@ -157,7 +157,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar variant="floating" className="w-64 flex-shrink-0 overflow-hidden">
+    <Sidebar variant="inset" className="w-64 flex-shrink-0 overflow-hidden">
       <SidebarHeader>
         <div className="text-sidebar-foreground py-2 text-center text-sm font-medium">
           Wish T3 Chat
