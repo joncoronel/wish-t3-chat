@@ -17,18 +17,18 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const supabase = await createClient();
-
-    try {
-      const { data, error: exchangeError } =
-        await supabase.auth.exchangeCodeForSession(code);
-
-      if (!exchangeError && data.session) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) {
+      const forwardedHost = request.headers.get("x-forwarded-host"); // original origin before load balancer
+      const isLocalEnv = process.env.NODE_ENV === "development";
+      if (isLocalEnv) {
+        // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
         return NextResponse.redirect(`${origin}${next}`);
+      } else if (forwardedHost) {
+        return NextResponse.redirect(`https://${forwardedHost}${next}`);
       } else {
-        console.error("Error exchanging code for session:", exchangeError);
+        return NextResponse.redirect(`${origin}${next}`);
       }
-    } catch (err) {
-      console.error("Unexpected error during code exchange:", err);
     }
   }
 
