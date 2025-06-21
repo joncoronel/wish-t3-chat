@@ -25,6 +25,7 @@ import {
   Lock,
   Settings,
   ArrowRight,
+  Brain,
 } from "lucide-react";
 import React, { useState } from "react";
 import {
@@ -40,6 +41,7 @@ import {
   getAvailableSources,
   selectBestSource,
   getModelById,
+  isThinkingModel,
   type ConsolidatedModel,
 } from "@/lib/ai";
 
@@ -210,6 +212,10 @@ export function ModelSelector({
                 currentModelInfo?.name ||
                 selectedModel}
             </span>
+            {(currentConsolidatedModel?.isThinking ||
+              (selectedModel && isThinkingModel(selectedModel))) && (
+              <Brain className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+            )}
           </div>
           <ChevronDown className="h-4 w-4 opacity-50" />
         </Button>
@@ -288,6 +294,9 @@ export function ModelSelector({
                       <span className="font-medium">
                         {consolidatedModel.name}
                       </span>
+                      {consolidatedModel.isThinking && (
+                        <Brain className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -374,6 +383,9 @@ export function ModelSelector({
                       <span className="font-medium">
                         {consolidatedModel.name}
                       </span>
+                      {consolidatedModel.isThinking && (
+                        <Brain className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -460,6 +472,9 @@ export function ModelSelector({
                       <span className="font-medium">
                         {consolidatedModel.name}
                       </span>
+                      {consolidatedModel.isThinking && (
+                        <Brain className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">
