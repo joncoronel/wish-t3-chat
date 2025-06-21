@@ -453,7 +453,14 @@ export function ChatInterface({
             displayMessages={displayMessages}
             chatId={chatId}
             isLoading={Boolean(isLoadingChatContent)}
-            isStreaming={Boolean(isLoading)}
+            isStreaming={Boolean(
+              isLoading &&
+                displayMessages.length > 0 &&
+                displayMessages[displayMessages.length - 1]?.role ===
+                  "assistant",
+            )}
+            isWaitingForResponse={Boolean(isLoading)}
+            selectedModel={selectedModel}
             messagesEndRef={messagesEndRef}
           />
         </div>

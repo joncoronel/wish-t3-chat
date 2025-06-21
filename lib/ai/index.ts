@@ -12,6 +12,7 @@ export interface AIModel {
   maxTokens: number;
   supportsFunctions: boolean;
   supportsVision: boolean;
+  isThinking?: boolean; // For reasoning/thinking models like o1
   costPer1kTokens: {
     input: number;
     output: number;
@@ -26,6 +27,7 @@ export interface ConsolidatedModel {
   maxTokens: number;
   supportsFunctions: boolean;
   supportsVision: boolean;
+  isThinking?: boolean; // For reasoning/thinking models like o1
   sources: {
     provider: string;
     modelId: string;
@@ -125,10 +127,12 @@ export const AI_MODELS: AIModel[] = [
     id: "gemini-2.5-pro",
     name: "Gemini 2.5 Pro",
     provider: "google",
-    description: "Google's most capable multimodal model",
+    description:
+      "Google's most capable multimodal model with advanced reasoning",
     maxTokens: 2000000,
     supportsFunctions: true,
     supportsVision: true,
+    isThinking: true,
     costPer1kTokens: { input: 0.0035, output: 0.0105 },
   },
   {
@@ -330,6 +334,7 @@ export const CONSOLIDATED_MODELS: ConsolidatedModel[] = [
       },
     ],
   },
+
   {
     baseId: "claude-opus-4",
     name: "Claude Opus 4",
@@ -438,10 +443,12 @@ export const CONSOLIDATED_MODELS: ConsolidatedModel[] = [
   {
     baseId: "gemini-2.5-pro",
     name: "Gemini 2.5 Pro",
-    description: "Google's most capable multimodal model",
+    description:
+      "Google's most capable multimodal model with advanced reasoning",
     maxTokens: 2000000,
     supportsFunctions: true,
     supportsVision: true,
+    isThinking: true,
     sources: [
       {
         provider: "google",
@@ -670,4 +677,25 @@ export function calculateTokenCost(
   const inputCost = (inputTokens / 1000) * model.costPer1kTokens.input;
   const outputCost = (outputTokens / 1000) * model.costPer1kTokens.output;
   return inputCost + outputCost;
+}
+
+// Helper function to check if a model is a thinking/reasoning model
+export function isThinkingModel(modelId: string): boolean {
+  // Check if it's an o1 model (thinking models)
+  if (modelId.includes("o1") || modelId.includes("o3")) {
+    return true;
+  }
+
+  // Check the model configuration
+  const model = getModelById(modelId);
+  if (model?.isThinking) {
+    return true;
+  }
+
+  // Check consolidated models
+  const consolidatedModel = CONSOLIDATED_MODELS.find((cm) =>
+    cm.sources.some((source) => source.modelId === modelId),
+  );
+
+  return consolidatedModel?.isThinking || false;
 }

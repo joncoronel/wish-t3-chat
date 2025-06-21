@@ -166,3 +166,30 @@
     background-color: var(--sidebar);
   }
 }
+
+/* Shimmer animation for thinking models */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes shimmer-text {
+  0% {
+    background-position: 100% center;
+  }
+  100% {
+    background-position: 0% center;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+.animate-shimmer-text {
+  animation: shimmer-text 2s linear infinite;
+}

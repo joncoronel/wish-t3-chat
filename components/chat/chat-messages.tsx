@@ -2,6 +2,9 @@
 
 import { MessageComponent } from "./message";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Spinner } from "@/components/ui/spinner";
+import { ShimmerText } from "@/components/ui/shimmer-text";
+import { isThinkingModel } from "@/lib/ai";
 import type { Message } from "ai";
 import type { Message as DBMessage } from "@/types";
 
@@ -10,6 +13,8 @@ interface ChatMessagesProps {
   chatId?: string;
   isLoading: boolean;
   isStreaming: boolean;
+  isWaitingForResponse: boolean;
+  selectedModel?: string;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -18,8 +23,21 @@ export function ChatMessages({
   chatId,
   isLoading,
   isStreaming,
+  isWaitingForResponse,
+  selectedModel,
   messagesEndRef,
 }: ChatMessagesProps) {
+  // Show loading indicator when waiting for AI to start responding
+  // This happens when: we're waiting for response AND the last message is from user
+  const lastMessage = displayMessages[displayMessages.length - 1];
+  const showLoadingIndicator =
+    isWaitingForResponse &&
+    lastMessage?.role === "user" &&
+    displayMessages.length > 0;
+
+  // Check if current model is a thinking model
+  const isThinking = selectedModel ? isThinkingModel(selectedModel) : false;
+
   // Show loading state when switching chats
   if (isLoading) {
     return (
@@ -89,11 +107,35 @@ export function ChatMessages({
                     : undefined,
                 }}
                 isStreaming={
-                  isStreaming && index === displayMessages.length - 1
+                  isStreaming &&
+                  index === displayMessages.length - 1 &&
+                  message.role === "assistant"
                 }
               />
             );
           })}
+
+          {/* Show loading indicator when waiting for AI response */}
+          {showLoadingIndicator && (
+            <div className="mb-8 flex py-4">
+              <div className="flex w-full flex-col">
+                <div className="text-sm leading-relaxed">
+                  {isThinking ? (
+                    <div className="flex items-center gap-2">
+                      <ShimmerText className="text-sm">
+                        AI is thinking...
+                      </ShimmerText>
+                    </div>
+                  ) : (
+                    <div className="text-muted-foreground flex items-center">
+                      <Spinner variant="ellipsis" size={20} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div ref={messagesEndRef} />
         </div>
       </div>
