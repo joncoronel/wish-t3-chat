@@ -169,7 +169,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
         <div className="flex-shrink-0 p-2">
           <Button
             onClick={navigateToNewChat}
-            className="bg-sidebar-foreground text-sidebar hover:bg-sidebar-foreground/90 h-9 w-full justify-start gap-2"
+            className="bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 h-9 w-full justify-start gap-2"
             variant="default"
           >
             <Plus className="h-4 w-4" />
@@ -186,7 +186,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
                 placeholder="Search conversations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-sidebar-accent/80 border-sidebar-border/50 text-sidebar-foreground placeholder:text-sidebar-foreground/70 focus-visible:bg-sidebar-accent focus-visible:border-sidebar-border focus-visible:ring-sidebar-foreground/20 border pl-8 focus-visible:ring-1"
+                className="bg-sidebar-accent/80 border-sidebar-border/50 text-sidebar-foreground placeholder:text-sidebar-foreground/70 focus-visible:bg-sidebar-accent focus-visible:border-sidebar-border focus-visible:ring-sidebar-ring border pl-8 focus-visible:ring-1"
               />
             </div>
           </SidebarGroupContent>
