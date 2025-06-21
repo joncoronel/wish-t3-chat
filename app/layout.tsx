@@ -9,11 +9,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Wish T3 Chat - AI Chat Application",
+  title: "Cubby Chat - AI Chat Application",
   description:
-    "A feature-rich AI chat application built for the T3 Chat Clone competition",
-  keywords: ["AI", "Chat", "OpenAI", "Claude", "Gemini", "T3"],
-  authors: [{ name: "T3 Chat Clone Team" }],
+    "A feature-rich AI chat application with multi-provider LLM support",
+  keywords: ["AI", "Chat", "OpenAI", "Claude", "Gemini", "cubby"],
+  authors: [{ name: "Cubby Chat Team" }],
 };
 
 export const viewport: Viewport = {

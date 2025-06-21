@@ -17,7 +17,7 @@ export async function deriveEncryptionKey(userId: string): Promise<CryptoKey> {
   return crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
-      salt: encoder.encode("wish-t3-chat-api-keys"), // Static salt for consistency
+      salt: encoder.encode("cubby-chat-api-keys"), // Static salt for consistency
       iterations: 100000,
       hash: "SHA-256",
     },

@@ -160,7 +160,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
     <Sidebar variant="inset" className="w-64 flex-shrink-0 overflow-hidden">
       <SidebarHeader>
         <div className="text-sidebar-foreground py-2 text-center text-sm font-medium">
-          Wish T3 Chat
+          Cubby Chat
         </div>
       </SidebarHeader>
 

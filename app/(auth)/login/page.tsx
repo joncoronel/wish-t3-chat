@@ -24,7 +24,7 @@ export default function LoginPage() {
             </div>
           </div>
           <h1 className="mb-2 text-2xl font-bold tracking-tight">
-            Welcome to Wish T3 Chat
+            Welcome to Cubby Chat
           </h1>
           <div className="flex items-center justify-center gap-2">
             <p className="text-muted-foreground">AI-powered chat application</p>
