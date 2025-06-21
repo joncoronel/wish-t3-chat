@@ -128,8 +128,8 @@
   --sidebar-foreground: oklch(0.95 0 0);
   --sidebar-primary: oklch(0.75 0.06 233.24);
   --sidebar-primary-foreground: oklch(0.15 0 0);
-  /* Sidebar accent - much darker than sidebar background for better contrast */
-  --sidebar-accent: oklch(0.18 0.005 285.823);
+  /* Sidebar accent - darker than sidebar background but not too dark */
+  --sidebar-accent: oklch(0.22 0.005 285.823);
   --sidebar-accent-foreground: oklch(0.95 0 0);
   /* Sidebar borders - darker than sidebar background for definition */
   --sidebar-border: oklch(0.22 0.005 285.823);

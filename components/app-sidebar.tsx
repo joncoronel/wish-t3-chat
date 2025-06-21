@@ -305,7 +305,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
                     ))
                   )}
                 </div>
-                <ScrollBar className="w-1.5 transition-[width] duration-200 ease-out hover:w-2 data-[state=dragging]:w-2" />
+                <ScrollBar className="[&>div]:bg-border dark:[&>div]:bg-sidebar-accent w-1.5 transition-[width] duration-200 ease-out hover:w-2 data-[state=dragging]:w-2" />
               </ScrollArea>
             </div>
           </SidebarGroupContent>
