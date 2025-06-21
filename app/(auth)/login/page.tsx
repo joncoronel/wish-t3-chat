@@ -1,4 +1,5 @@
 import { MessageSquare } from "lucide-react";
+import { SiGoogle } from "@icons-pack/react-simple-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { login, signup } from "@/lib/auth/actions";
+import { login, signup, signInWithGoogle } from "@/lib/auth/actions";
 
 export default function LoginPage() {
   return (
@@ -41,6 +42,26 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Google Sign In */}
+            <form action={signInWithGoogle}>
+              <Button type="submit" variant="outline" className="w-full">
+                <SiGoogle className="mr-2 h-4 w-4" />
+                Continue with Google
+              </Button>
+            </form>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background text-muted-foreground px-2">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            {/* Email/Password Sign In */}
             <form className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>

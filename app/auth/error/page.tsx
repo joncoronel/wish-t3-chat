@@ -12,7 +12,7 @@ export default function AuthErrorPage() {
         </div>
         <div className="mt-8">
           <a
-            href="/auth/login"
+            href="/login"
             className="group bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/50 relative flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium transition-[color,box-shadow] focus:outline-none focus-visible:ring-[3px]"
           >
             Back to Login

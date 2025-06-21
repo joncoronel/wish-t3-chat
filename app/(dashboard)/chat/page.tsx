@@ -13,7 +13,7 @@ export default async function ChatPage({ searchParams }: ChatPageProps) {
   const user = await getUser();
 
   if (!user) {
-    redirect("/auth/login");
+    redirect("/login");
   }
 
   const { id: chatId } = await searchParams;

@@ -35,7 +35,7 @@ export default function ErrorPage() {
 
             <div className="space-y-2">
               <Button asChild className="w-full">
-                <Link href="/auth/login">Try Again</Link>
+                <Link href="/login">Try Again</Link>
               </Button>
               <Button variant="outline" asChild className="w-full">
                 <Link href="/">Go Home</Link>

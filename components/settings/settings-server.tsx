@@ -9,7 +9,7 @@ export async function SettingsServer() {
   const user = await getUser();
 
   if (!user) {
-    redirect("/auth/login");
+    redirect("/login");
   }
 
   // Fetch data on the server for performance
