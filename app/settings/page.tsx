@@ -9,8 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
-export const experimental_ppr = true;
-
 export default async function SettingsPage() {
   return (
     <div className="bg-background min-h-screen">
