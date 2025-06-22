@@ -19,7 +19,7 @@ import {
   deleteConversation,
 } from "@/hooks/use-conversations";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useChatUrl } from "@/hooks/use-chat-url";
 import { cn } from "@/lib/utils";
 
 interface DeleteConversationDialogProps {
@@ -43,7 +43,7 @@ export function DeleteConversationDialog({
 }: DeleteConversationDialogProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [open, setOpen] = useState(false);
-  const router = useRouter();
+  const { navigateToNewChat } = useChatUrl();
 
   // Get cached conversations data
   const { data: conversations } = useConversations(userId);
@@ -53,9 +53,9 @@ export function DeleteConversationDialog({
     try {
       await deleteConversation(conversationId, userId, conversations);
 
-      // If we're currently viewing the deleted conversation, redirect to chat page
+      // If we're currently viewing the deleted conversation, navigate to new chat
       if (currentChatId === conversationId) {
-        router.push("/chat");
+        navigateToNewChat();
       }
 
       toast.success("Conversation deleted successfully");

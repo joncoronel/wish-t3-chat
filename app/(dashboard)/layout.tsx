@@ -9,6 +9,8 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { SidebarTriggerWithNewChat } from "@/components/layout/sidebar-trigger-with-new-chat";
 import { HeaderToolsOverlay } from "@/components/layout/header-tools-overlay";
 
+export const experimental_ppr = true;
+
 export default async function DashboardLayout({
   children,
 }: {

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -519,16 +520,17 @@ export function ModelSelector({
 
             {/* Settings link */}
             <CommandGroup heading="Configuration">
-              <CommandItem
-                onSelect={() => {
-                  setOpen(false);
-                  window.open("/settings", "_blank");
-                }}
-                className="text-muted-foreground"
-              >
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Configure API Keys</span>
-                <ArrowRight className="ml-auto h-3 w-3" />
+              <CommandItem asChild className="text-muted-foreground">
+                <Link
+                  href="/settings"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setOpen(false)}
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Configure API Keys</span>
+                  <ArrowRight className="ml-auto h-3 w-3" />
+                </Link>
               </CommandItem>
             </CommandGroup>
           </CommandList>

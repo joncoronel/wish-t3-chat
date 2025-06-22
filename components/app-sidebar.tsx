@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 import {
   MessageSquare,
@@ -146,10 +147,6 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
     } finally {
       setDeletingId(null);
     }
-  };
-
-  const handleSettings = () => {
-    window.location.href = "/settings";
   };
 
   const handleSignOut = async () => {
@@ -348,9 +345,11 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSettings}>
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
+              <DropdownMenuItem asChild>
+                <Link href="/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Share className="mr-2 h-4 w-4" />

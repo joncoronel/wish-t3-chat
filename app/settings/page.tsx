@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 
 import { SettingsServer } from "@/components/settings/settings-server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,10 +16,10 @@ export default async function SettingsPage() {
         <div className="container mx-auto max-w-4xl px-4 py-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" asChild>
-              <a href="/chat" className="flex items-center gap-2">
+              <Link href="/chat" className="flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 Back to Chat
-              </a>
+              </Link>
             </Button>
             <div className="flex-1">
               <h1 className="text-2xl font-bold">Settings</h1>

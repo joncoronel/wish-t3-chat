@@ -8,6 +8,8 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+export const experimental_ppr = true;
+
 export const metadata: Metadata = {
   title: "Cubby Chat - AI Chat Application",
   description:
