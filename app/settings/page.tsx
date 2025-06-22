@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 
 import { SettingsServer } from "@/components/settings/settings-server";
+import { SettingsLoadingSkeleton } from "@/components/settings/settings-loading-skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -50,7 +51,7 @@ export default async function SettingsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <Suspense fallback={<div>Loading settings...</div>}>
+              <Suspense fallback={<SettingsLoadingSkeleton />}>
                 <SettingsServer />
               </Suspense>
             </CardContent>
