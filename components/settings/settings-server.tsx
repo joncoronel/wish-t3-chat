@@ -13,10 +13,9 @@ export async function SettingsServer() {
   }
 
   // Fetch data on the server for performance
-  const [encryptedApiKeys, userPreferences] = await Promise.all([
-    getEncryptedApiKeys(user.id),
-    getUserPreferences(user.id),
-  ]);
+
+  const encryptedApiKeys = getEncryptedApiKeys(user.id);
+  const userPreferences = getUserPreferences(user.id);
 
   return (
     <SWRConfig

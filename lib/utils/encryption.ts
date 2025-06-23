@@ -18,7 +18,7 @@ export async function deriveEncryptionKey(userId: string): Promise<CryptoKey> {
     {
       name: "PBKDF2",
       salt: encoder.encode("cubby-chat-api-keys"), // Static salt for consistency
-      iterations: 100000,
+      iterations: 10000,
       hash: "SHA-256",
     },
     keyMaterial,
