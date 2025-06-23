@@ -32,8 +32,9 @@ export function useUserPreferences({ userId }: UseUserPreferencesProps) {
     userId ? `user-preferences-${userId}` : null,
     fetchUserPreferences,
     {
-      revalidateOnMount: false,
+      revalidateOnMount: undefined,
       revalidateOnFocus: false,
+      revalidateIfStale: false,
       revalidateOnReconnect: true,
     },
   );

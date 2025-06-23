@@ -2,8 +2,7 @@ import { redirect } from "next/navigation";
 import { SWRConfig } from "swr";
 import { getUser } from "@/lib/auth";
 import { getConversations } from "@/lib/data/conversations";
-import { getEncryptedApiKeys } from "@/lib/data/api-keys";
-import { getUserPreferences } from "@/lib/data/user-preferences";
+import { getUserSettingsData } from "@/lib/data/user-preferences";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { SidebarTriggerWithNewChat } from "@/components/layout/sidebar-trigger-with-new-chat";
@@ -20,27 +19,22 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  // Fetch data on the server for performance
-  const [conversations, encryptedApiKeys, userPreferences] = await Promise.all([
-    getConversations(user.id),
-    getEncryptedApiKeys(user.id),
-    getUserPreferences(user.id),
-  ]);
+  // Fetch data on the server for performance - using unified settings fetch
+  const conversationsPromise = getConversations(user.id);
+  const userSettingsPromise = getUserSettingsData(user.id);
 
   return (
     <SWRConfig
       value={{
         fallback: {
-          [`conversations-${user.id}`]: conversations,
-          [`encrypted-api-keys-${user.id}`]: encryptedApiKeys,
-          [`user-preferences-${user.id}`]: userPreferences,
+          [`conversations-${user.id}`]: conversationsPromise,
+          [`encrypted-api-keys-${user.id}`]: userSettingsPromise.then(
+            (data) => data.apiKeys,
+          ),
+          [`user-preferences-${user.id}`]: userSettingsPromise.then(
+            (data) => data.preferences,
+          ),
         },
-        // Global SWR configuration to prevent unnecessary fetches
-        revalidateOnMount: false,
-        revalidateOnFocus: false,
-        revalidateOnReconnect: false,
-        dedupingInterval: 60000, // 1 minute
-        // focusThrottleInterval: 60000, // 1 minute
       }}
     >
       <div className="flex h-screen">

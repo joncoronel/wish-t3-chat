@@ -184,9 +184,9 @@ export function useConversation(conversationId: string, userId: string) {
       : null,
     () => fetchConversation(conversationId, userId),
     {
-      revalidateOnMount: true,
+      revalidateOnMount: undefined, // Let SWR decide based on cache state
       revalidateOnFocus: false,
-      revalidateIfStale: false,
+      revalidateIfStale: false, // Only fetch if no cached data exists
       // revalidateOnReconnect: false,
       // dedupingInterval: 60000, // 1 minute - prevent duplicate requests
     },
@@ -198,9 +198,9 @@ export function useMessages(conversationId: string) {
     conversationId ? `messages-${conversationId}` : null,
     () => fetchMessages(conversationId),
     {
-      revalidateOnMount: true,
+      revalidateOnMount: undefined, // Let SWR decide based on cache state
       revalidateOnFocus: false,
-      revalidateIfStale: false,
+      revalidateIfStale: false, // Only fetch if no cached data exists
       // revalidateOnReconnect: false,
       // dedupingInterval: 60000, // 1 minute - prevent duplicate requests
     },

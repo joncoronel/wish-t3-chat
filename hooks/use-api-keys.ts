@@ -48,8 +48,9 @@ export function useApiKeys({ userId }: UseApiKeysProps) {
     error: fetchError,
     mutate: mutateApiKeys,
   } = useSWR(`encrypted-api-keys-${userId}`, fetchEncryptedApiKeys, {
-    revalidateOnMount: false,
+    revalidateOnMount: undefined,
     revalidateOnFocus: false,
+    revalidateIfStale: false,
     revalidateOnReconnect: true,
     errorRetryCount: 2,
   });
