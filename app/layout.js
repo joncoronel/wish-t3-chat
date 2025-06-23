@@ -9,13 +9,9 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout(children) {
   return (
-    <html lang="en" suppressHydrationWarning className="h-full">
+    <html className="h-full">
       <body className={`${inter.variable} h-full font-sans antialiased`}>
         <div className="h-full">{children}</div>
       </body>
