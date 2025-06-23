@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 // import Link from "next/link";
 
-import SettingsServer from "@/components/settings/settings-server";
+import SettingsServer from "@/app/settings/settings-server";
 // import { SettingsLoadingSkeleton } from "@/components/settings/settings-loading-skeleton";
 
 export default function SettingsPage() {
