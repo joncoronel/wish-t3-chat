@@ -44,7 +44,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuAction,
 } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -270,77 +269,89 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
                             (conversation) => (
                               <SidebarMenuItem
                                 key={conversation.id}
-                                className="mb-1 overflow-hidden"
+                                className="group/item mb-1 overflow-hidden"
                               >
-                                <SidebarMenuButton
-                                  isActive={currentChatId === conversation.id}
-                                  className="relative h-auto min-h-[3rem] w-full cursor-pointer overflow-hidden p-3"
-                                  onMouseDown={() =>
-                                    handleConversationClick(conversation.id)
-                                  }
-                                >
-                                  <div className="flex w-full min-w-0 items-center overflow-hidden">
-                                    <span className="min-w-0 flex-1 truncate text-sm leading-tight font-medium">
-                                      {conversation.title || "Untitled Chat"}
-                                    </span>
-                                    {conversation.is_shared && (
-                                      <div className="ml-2 flex-shrink-0">
-                                        <Badge
-                                          variant="secondary"
-                                          className="text-xs"
-                                        >
-                                          Shared
-                                        </Badge>
-                                      </div>
-                                    )}
-                                  </div>
-                                  {isChatLoading(conversation.id) && (
-                                    <Loader2 className="text-sidebar-foreground/70 absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin" />
-                                  )}
-                                </SidebarMenuButton>
-                                <AlertDialog>
-                                  <SidebarMenuAction showOnHover asChild>
-                                    <AlertDialogTrigger>
-                                      <Trash2 className="h-4 w-4" />
-                                    </AlertDialogTrigger>
-                                  </SidebarMenuAction>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>
-                                        Delete Conversation
-                                      </AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Are you sure you want to delete &ldquo;
+                                <div className="group-hover/item:bg-sidebar-accent/50 relative flex items-center rounded-md transition-colors duration-150">
+                                  <SidebarMenuButton
+                                    isActive={currentChatId === conversation.id}
+                                    className="relative h-auto min-h-[3rem] w-full cursor-pointer overflow-hidden p-3 pr-10 hover:bg-transparent"
+                                    onMouseDown={() =>
+                                      handleConversationClick(conversation.id)
+                                    }
+                                  >
+                                    <div className="flex w-full min-w-0 items-center overflow-hidden">
+                                      <span className="min-w-0 flex-1 truncate text-sm leading-tight font-medium">
                                         {conversation.title || "Untitled Chat"}
-                                        &rdquo;? This action cannot be undone
-                                        and will permanently remove the
-                                        conversation and all its messages.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel
-                                        disabled={
-                                          deletingId === conversation.id
-                                        }
-                                      >
-                                        Cancel
-                                      </AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() =>
-                                          handleDelete(conversation.id)
-                                        }
-                                        disabled={
-                                          deletingId === conversation.id
-                                        }
-                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                      >
-                                        {deletingId === conversation.id
-                                          ? "Deleting..."
-                                          : "Delete"}
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
+                                      </span>
+                                      {conversation.is_shared && (
+                                        <div className="ml-2 flex-shrink-0">
+                                          <Badge
+                                            variant="secondary"
+                                            className="text-xs"
+                                          >
+                                            Shared
+                                          </Badge>
+                                        </div>
+                                      )}
+                                    </div>
+                                    {isChatLoading(conversation.id) && (
+                                      <Loader2 className="text-sidebar-foreground/70 absolute top-1/2 right-10 h-4 w-4 -translate-y-1/2 animate-spin" />
+                                    )}
+                                  </SidebarMenuButton>
+
+                                  {/* Delete Button */}
+                                  <div className="absolute top-1/2 right-2 z-10 -translate-y-1/2">
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <button
+                                          className="text-sidebar-foreground/60 hover:bg-destructive/20 hover:text-destructive focus:ring-destructive/50 flex h-7 w-7 translate-x-2 transform-gpu items-center justify-center rounded-md opacity-0 transition-all duration-150 ease-in-out group-hover/item:translate-x-0 group-hover/item:opacity-100 focus:translate-x-0 focus:opacity-100 focus:ring-2 focus:outline-none"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                        </button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>
+                                            Delete Conversation
+                                          </AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Are you sure you want to delete
+                                            &ldquo;
+                                            {conversation.title ||
+                                              "Untitled Chat"}
+                                            &rdquo;? This action cannot be
+                                            undone and will permanently remove
+                                            the conversation and all its
+                                            messages.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel
+                                            disabled={
+                                              deletingId === conversation.id
+                                            }
+                                          >
+                                            Cancel
+                                          </AlertDialogCancel>
+                                          <AlertDialogAction
+                                            onClick={() =>
+                                              handleDelete(conversation.id)
+                                            }
+                                            disabled={
+                                              deletingId === conversation.id
+                                            }
+                                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                          >
+                                            {deletingId === conversation.id
+                                              ? "Deleting..."
+                                              : "Delete"}
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  </div>
+                                </div>
                               </SidebarMenuItem>
                             ),
                           )}
