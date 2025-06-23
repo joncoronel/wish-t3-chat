@@ -1,12 +1,9 @@
-import { redirect } from "next/navigation";
-import { getUser } from "@/lib/auth";
+import Link from "next/link";
 
 export default async function HomePage() {
-  const user = await getUser();
-
-  if (user) {
-    redirect("/chat");
-  } else {
-    redirect("/login");
-  }
+  return (
+    <div>
+      <Link href="/settings">Settings</Link>
+    </div>
+  );
 }
