@@ -27,6 +27,7 @@ import {
   HardDrive,
   Settings,
 } from "lucide-react";
+import { SettingsLoadingSkeleton } from "./settings-loading-skeleton";
 
 const PROVIDER_INFO = {
   openai: {
@@ -187,12 +188,8 @@ export function SettingsForm({ userId }: SettingsFormProps) {
     keyState.value.trim(),
   );
 
-  if (apiKeysLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
+  if (apiKeysLoading && !isEncryptionAvailable) {
+    return <SettingsLoadingSkeleton />;
   }
 
   return (
