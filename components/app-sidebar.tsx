@@ -81,7 +81,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
       conversation.model.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  // Group conversations by date
+  // Group conversations by date with granular time periods
   const groupedConversations = filteredConversations.reduce(
     (groups, conversation) => {
       const date = new Date(conversation.updated_at);
@@ -89,26 +89,44 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
 
       // Get start of today (midnight)
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      // Get start of yesterday
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      // Get start of this week (assuming week starts on Sunday)
-      const thisWeekStart = new Date(today);
-      thisWeekStart.setDate(today.getDate() - today.getDay());
-      // Get start of this month
-      const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      // Calculate days difference
+      const diffTime = today.getTime() - date.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
       let groupKey: string;
-      if (date >= today) {
+
+      if (diffDays === 0) {
         groupKey = "Today";
-      } else if (date >= yesterday) {
+      } else if (diffDays === 1) {
         groupKey = "Yesterday";
-      } else if (date >= thisWeekStart) {
-        groupKey = "This Week";
-      } else if (date >= thisMonthStart) {
-        groupKey = "This Month";
+      } else if (diffDays <= 6) {
+        groupKey = `${diffDays} days ago`;
+      } else if (diffDays <= 13) {
+        const weeks = Math.floor(diffDays / 7);
+        groupKey = weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
+      } else if (diffDays <= 29) {
+        const weeks = Math.floor(diffDays / 7);
+        groupKey = `${weeks} weeks ago`;
       } else {
-        groupKey = "Older";
+        // Calculate months difference more accurately
+        const conversationMonth = date.getMonth();
+        const conversationYear = date.getFullYear();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        const monthsDiff =
+          (currentYear - conversationYear) * 12 +
+          (currentMonth - conversationMonth);
+
+        if (monthsDiff === 1) {
+          groupKey = "Last month";
+        } else if (monthsDiff <= 12) {
+          groupKey = `${monthsDiff} months ago`;
+        } else {
+          const years = Math.floor(monthsDiff / 12);
+          groupKey = years === 1 ? "1 year ago" : `${years} years ago`;
+        }
       }
 
       if (!groups[groupKey]) {
@@ -120,8 +138,37 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
     {} as Record<string, typeof conversations>,
   );
 
-  // Sort groups by priority
-  const groupOrder = ["Today", "Yesterday", "This Week", "This Month", "Older"];
+  // Sort groups by priority with the new granular system
+  const groupOrder = [
+    "Today",
+    "Yesterday",
+    "2 days ago",
+    "3 days ago",
+    "4 days ago",
+    "5 days ago",
+    "6 days ago",
+    "1 week ago",
+    "2 weeks ago",
+    "3 weeks ago",
+    "4 weeks ago",
+    "Last month",
+    "2 months ago",
+    "3 months ago",
+    "4 months ago",
+    "5 months ago",
+    "6 months ago",
+    "7 months ago",
+    "8 months ago",
+    "9 months ago",
+    "10 months ago",
+    "11 months ago",
+    "1 year ago",
+    "2 years ago",
+    "3 years ago",
+    "4 years ago",
+    "5 years ago",
+  ];
+
   const sortedGroups = groupOrder.filter(
     (group) => groupedConversations[group]?.length > 0,
   );
