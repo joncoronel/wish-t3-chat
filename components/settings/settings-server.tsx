@@ -1,6 +1,5 @@
 import { SWRConfig } from "swr";
-import { getEncryptedApiKeys } from "@/lib/data/api-keys";
-import { getUserPreferences } from "@/lib/data/user-preferences";
+import { getUserSettingsData } from "@/lib/data/user-preferences";
 import { SettingsForm } from "./settings-form";
 import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -12,17 +11,19 @@ export async function SettingsServer() {
     redirect("/login");
   }
 
-  // Fetch data on the server for performance
-
-  const encryptedApiKeys = getEncryptedApiKeys(user.id);
-  const userPreferences = getUserPreferences(user.id);
+  // Fetch both API keys and user preferences in a single query, but maintain separate SWR keys
+  const userSettingsPromise = getUserSettingsData(user.id);
 
   return (
     <SWRConfig
       value={{
         fallback: {
-          [`encrypted-api-keys-${user.id}`]: encryptedApiKeys,
-          [`user-preferences-${user.id}`]: userPreferences,
+          [`encrypted-api-keys-${user.id}`]: userSettingsPromise.then(
+            (data) => data.apiKeys,
+          ),
+          [`user-preferences-${user.id}`]: userSettingsPromise.then(
+            (data) => data.preferences,
+          ),
         },
       }}
     >
