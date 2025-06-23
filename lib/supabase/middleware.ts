@@ -37,7 +37,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const publicRoutes = ["/login", "/auth/callback", "/auth/confirm"];
+  const publicRoutes = ["/login", "/auth/callback", "/auth/confirm", "/"];
 
   if (!user && !publicRoutes.includes(request.nextUrl.pathname)) {
     // no user, potentially respond by redirecting the user to the login page
