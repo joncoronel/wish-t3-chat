@@ -223,10 +223,12 @@ export function ModelSelector({
       </PopoverTrigger>
 
       <PopoverContent
-        className="border-input w-full min-w-[var(--radix-popper-anchor-width)] p-0"
+        className={cn(
+          "border-border bg-popover/85 w-full min-w-[var(--radix-popper-anchor-width)] p-0 backdrop-blur-sm",
+        )}
         align="start"
       >
-        <Command>
+        <Command className="bg-transparent">
           <CommandInput placeholder="Search AI models..." />
           <CommandList>
             <CommandEmpty>No model found.</CommandEmpty>
