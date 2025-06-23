@@ -9,7 +9,7 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-export default function RootLayout(children) {
+export default function RootLayout({ children }) {
   return (
     <html className="h-full">
       <body className={`${inter.variable} h-full font-sans antialiased`}>

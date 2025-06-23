@@ -22,6 +22,15 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "lib/auth.js",
+    "lib/supabase/server.js",
+    "app/settings/page.js",
+    "app/layout.js"
+  ],
   "exclude": ["node_modules"]
 }
