@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { Providers } from "@/components/providers/providers";
+// import { Providers } from "@/components/providers/providers";
 import "./globals.css";
 
 export const experimental_ppr = true;
@@ -31,9 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="h-full">
       <body className={`${inter.variable} h-full font-sans antialiased`}>
-        <Providers>
-          <div className="h-full">{children}</div>
-        </Providers>
+        <div className="h-full">{children}</div>
       </body>
     </html>
   );
