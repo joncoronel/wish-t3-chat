@@ -6,7 +6,10 @@ import { atomWithStorage } from "jotai/utils";
 import { ApiKeys } from "@/store/api-keys";
 
 // Local storage atom for API keys (unencrypted in localStorage)
-const localApiKeysAtom = atomWithStorage<ApiKeys>("api-keys", {});
+// Using a function to avoid SSR hydration issues
+const localApiKeysAtom = atomWithStorage<ApiKeys>("api-keys", {}, undefined, {
+  getOnInit: true, // This helps with SSR hydration
+});
 
 export function useApiKeysLocal() {
   const [apiKeys, setApiKeys] = useAtom(localApiKeysAtom);
