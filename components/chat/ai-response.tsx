@@ -102,7 +102,6 @@ const getFilenameForLanguage = (language: string): string => {
 const getIconForFilename = (filename: string) => {
   // Get file extension
   const extension = filename.toLowerCase().split(".").pop();
-  console.log("Filename:", filename, "Extension:", extension);
 
   // Direct extension mapping
   const extensionMap: Record<
@@ -149,11 +148,9 @@ const getIconForFilename = (filename: string) => {
 
   // Then check by extension
   if (extension && extensionMap[extension]) {
-    console.log("Found icon for extension:", extension);
     return extensionMap[extension];
   }
 
-  console.log("No icon found for filename:", filename);
   return null;
 };
 
@@ -256,7 +253,7 @@ const CodeBlock = ({
         });
         setHtml(highlighted);
       } catch (error) {
-        console.error("Failed to highlight code:", error);
+        // Silently fail and show fallback
       }
     };
 
@@ -273,8 +270,6 @@ const CodeBlock = ({
             <div className="text-muted-foreground flex items-center gap-2 bg-transparent px-4 py-1.5 text-xs">
               {(() => {
                 const Icon = getIconForFilename(filename);
-                console.log("Fallback Filename:", filename, "Icon:", Icon);
-                // Fallback to SiJavascript for testing if no icon found
                 const FinalIcon = Icon || SiJavascript;
                 return <FinalIcon className="h-4 w-4 shrink-0" />;
               })()}
@@ -317,8 +312,6 @@ const CodeBlock = ({
           <div className="text-muted-foreground flex items-center gap-2 bg-transparent px-4 py-1.5 text-xs">
             {(() => {
               const Icon = getIconForFilename(filename);
-              console.log("Filename:", filename, "Icon:", Icon);
-              // Fallback to SiJavascript for testing if no icon found
               const FinalIcon = Icon || SiJavascript;
               return <FinalIcon className="h-4 w-4 shrink-0" />;
             })()}
