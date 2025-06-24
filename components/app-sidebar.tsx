@@ -80,7 +80,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
       conversation.model.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  // Group conversations by date with granular time periods
+  // Group conversations by date
   const groupedConversations = filteredConversations.reduce(
     (groups, conversation) => {
       const date = new Date(conversation.updated_at);
@@ -88,43 +88,52 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
 
       // Get start of today (midnight)
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-      // Calculate days difference
-      const diffTime = today.getTime() - date.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      // Get start of yesterday
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
 
       let groupKey: string;
 
-      if (diffDays === 0) {
+      if (date >= today) {
         groupKey = "Today";
-      } else if (diffDays === 1) {
+      } else if (date >= yesterday) {
         groupKey = "Yesterday";
-      } else if (diffDays <= 6) {
-        groupKey = `${diffDays} days ago`;
-      } else if (diffDays <= 13) {
-        const weeks = Math.floor(diffDays / 7);
-        groupKey = weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
-      } else if (diffDays <= 29) {
-        const weeks = Math.floor(diffDays / 7);
-        groupKey = `${weeks} weeks ago`;
       } else {
-        // Calculate months difference more accurately
-        const conversationMonth = date.getMonth();
-        const conversationYear = date.getFullYear();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
+        // For older dates, calculate the difference in calendar days
+        const conversationDateOnly = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+        );
+        const diffTime = today.getTime() - conversationDateOnly.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-        const monthsDiff =
-          (currentYear - conversationYear) * 12 +
-          (currentMonth - conversationMonth);
-
-        if (monthsDiff === 1) {
-          groupKey = "Last month";
-        } else if (monthsDiff <= 12) {
-          groupKey = `${monthsDiff} months ago`;
+        if (diffDays <= 6) {
+          // Handles 2-6 days ago
+          groupKey = `${diffDays} days ago`;
+        } else if (diffDays <= 29) {
+          // Handles 1-4 weeks ago
+          const weeks = Math.floor(diffDays / 7);
+          groupKey = weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
         } else {
-          const years = Math.floor(monthsDiff / 12);
-          groupKey = years === 1 ? "1 year ago" : `${years} years ago`;
+          // Handle months and years ago
+          const conversationMonth = date.getMonth();
+          const conversationYear = date.getFullYear();
+          const currentMonth = now.getMonth();
+          const currentYear = now.getFullYear();
+
+          const monthsDiff =
+            (currentYear - conversationYear) * 12 +
+            (currentMonth - conversationMonth);
+
+          if (monthsDiff === 1) {
+            groupKey = "Last month";
+          } else if (monthsDiff < 12) {
+            groupKey = `${monthsDiff} months ago`;
+          } else {
+            const years = Math.floor(monthsDiff / 12);
+            groupKey = years === 1 ? "1 year ago" : `${years} years ago`;
+          }
         }
       }
 
@@ -137,7 +146,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
     {} as Record<string, typeof conversations>,
   );
 
-  // Sort groups by priority with the new granular system
+  // Define the order of groups for sorting
   const groupOrder = [
     "Today",
     "Yesterday",
@@ -274,7 +283,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
                                 <div className="group-hover/item:bg-sidebar-accent/50 relative flex items-center rounded-md transition-colors duration-150">
                                   <SidebarMenuButton
                                     isActive={currentChatId === conversation.id}
-                                    className="relative h-auto min-h-[3rem] w-full cursor-pointer overflow-hidden p-3 pr-10 hover:bg-transparent"
+                                    className="relative h-auto min-h-[3rem] w-full cursor-pointer overflow-hidden p-3 pr-14 hover:bg-transparent"
                                     onMouseDown={() =>
                                       handleConversationClick(conversation.id)
                                     }
@@ -295,7 +304,7 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
                                       )}
                                     </div>
                                     {isChatLoading(conversation.id) && (
-                                      <Loader2 className="text-sidebar-foreground/70 absolute top-1/2 right-10 h-4 w-4 -translate-y-1/2 animate-spin" />
+                                      <Loader2 className="text-sidebar-foreground/70 absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin" />
                                     )}
                                   </SidebarMenuButton>
 
