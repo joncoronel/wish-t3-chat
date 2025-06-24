@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { MessageComponent } from "./message";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
@@ -15,7 +16,6 @@ interface ChatMessagesProps {
   isStreaming: boolean;
   isWaitingForResponse: boolean;
   selectedModel?: string;
-  messagesEndRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function ChatMessages({
@@ -25,8 +25,21 @@ export function ChatMessages({
   isStreaming,
   isWaitingForResponse,
   selectedModel,
-  messagesEndRef,
 }: ChatMessagesProps) {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const viewport = scrollAreaViewportRef.current;
+    const bottomMarker = messagesEndRef.current;
+    if (viewport && bottomMarker) {
+      setTimeout(() => {
+        const top = bottomMarker.offsetTop;
+        viewport.scrollTo({ top, behavior: "smooth" });
+      }, 0);
+    }
+  }, [displayMessages]);
+
   // Show loading indicator when waiting for AI to start responding
   // This happens when: we're waiting for response AND the last message is from user
   const lastMessage = displayMessages[displayMessages.length - 1];
@@ -64,7 +77,7 @@ export function ChatMessages({
   }
 
   return (
-    <ScrollArea className="h-full w-full">
+    <ScrollArea className="h-full w-full" viewportRef={scrollAreaViewportRef}>
       <div className="flex justify-center">
         <div className="w-full max-w-4xl space-y-4 p-4 pb-32">
           {displayMessages.map((message, index) => {

@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-} from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { useChat } from "ai/react";
 
 import {
@@ -54,7 +48,6 @@ export function ChatInterface({
   chatId,
   userId,
 }: ChatInterfaceProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { navigateToChat } = useChatUrl();
   const { setLoading } = useChatLoading();
   const { selectedModel } = useGlobalModel();
@@ -201,28 +194,6 @@ export function ChatInterface({
       }
     },
   });
-
-  // Auto-scroll to bottom
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, chatMessages]);
-
-  // Create wrapper append function that always includes current API keys
-  // const append = useCallback(
-  //   async (
-  //     message: Parameters<typeof originalAppend>[0],
-  //     options?: Parameters<typeof originalAppend>[1],
-  //   ) => {
-  //     return originalAppend(message, {
-  //       ...options,
-  //       body: {
-  //         ...options?.body,
-  //         apiKeys: stableApiKeys, // Always include current API keys
-  //       },
-  //     });
-  //   },
-  //   [originalAppend, stableApiKeys],
-  // );
 
   // Combined messages for display
   // Use chatMessages as the source of truth since we sync database messages into it
@@ -458,7 +429,6 @@ export function ChatInterface({
             )}
             isWaitingForResponse={Boolean(isLoading)}
             selectedModel={selectedModel}
-            messagesEndRef={messagesEndRef}
           />
         </div>
       )}
