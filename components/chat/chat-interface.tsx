@@ -159,26 +159,20 @@ export function ChatInterface({
     return apiKeys;
   }, [JSON.stringify(apiKeys)]);
 
-  // Only initialize useChat when API keys are ready to prevent race conditions
-  const shouldInitializeChat = !isLoadingApiKeys;
-
   const {
     messages: chatMessages,
     append,
     isLoading,
     error,
-    setMessages,
   } = useChat({
     api: "/api/chat",
-    id: shouldInitializeChat ? chatKey : `loading-${chatKey}`, // Use different key when not ready
-    initialMessages: shouldInitializeChat
-      ? messages.map((msg) => ({
-          id: msg.id,
-          role: msg.role as "user" | "assistant" | "system",
-          content: msg.content,
-          experimental_attachments: convertDbAttachmentsToChat(msg.attachments),
-        }))
-      : [],
+    id: chatKey,
+    initialMessages: messages.map((msg) => ({
+      id: msg.id,
+      role: msg.role as "user" | "assistant" | "system",
+      content: msg.content,
+      experimental_attachments: convertDbAttachmentsToChat(msg.attachments),
+    })),
     body: {
       model: selectedModel,
       temperature: 0.7,
@@ -207,24 +201,6 @@ export function ChatInterface({
       }
     },
   });
-
-  // Sync database messages with chat messages when they change and chat is ready
-  useEffect(() => {
-    if (
-      shouldInitializeChat &&
-      messages.length > 0 &&
-      chatMessages.length === 0
-    ) {
-      setMessages(
-        messages.map((msg) => ({
-          id: msg.id,
-          role: msg.role as "user" | "assistant" | "system",
-          content: msg.content,
-          experimental_attachments: convertDbAttachmentsToChat(msg.attachments),
-        })),
-      );
-    }
-  }, [shouldInitializeChat, messages, chatMessages.length, setMessages]);
 
   // Auto-scroll to bottom
   useEffect(() => {
