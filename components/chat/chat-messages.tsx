@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { MessageComponent } from "./message";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
 import { ShimmerText } from "@/components/ui/shimmer-text";
+import { ScrollToBottomButton } from "./scroll-to-bottom-button";
+import { useChatScroll } from "@/hooks/use-chat-scroll";
 import { isThinkingModel } from "@/lib/ai";
 import type { Message } from "ai";
 import type { Message as DBMessage } from "@/types";
@@ -26,19 +27,17 @@ export function ChatMessages({
   isWaitingForResponse,
   selectedModel,
 }: ChatMessagesProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const viewport = scrollAreaViewportRef.current;
-    const bottomMarker = messagesEndRef.current;
-    if (viewport && bottomMarker) {
-      setTimeout(() => {
-        const top = bottomMarker.offsetTop;
-        viewport.scrollTo({ top, behavior: "smooth" });
-      }, 0);
-    }
-  }, [displayMessages]);
+  const {
+    scrollAreaViewportRef,
+    messagesEndRef,
+    isNearBottom,
+    isContentVisible,
+    scrollToBottom,
+  } = useChatScroll({
+    messages: displayMessages,
+    chatId,
+    isStreaming,
+  });
 
   // Show loading indicator when waiting for AI to start responding
   // This happens when: we're waiting for response AND the last message is from user
@@ -77,81 +76,93 @@ export function ChatMessages({
   }
 
   return (
-    <ScrollArea className="h-full w-full" viewportRef={scrollAreaViewportRef}>
-      <div className="flex justify-center">
-        <div className="w-full max-w-4xl space-y-4 p-4 pb-32">
-          {displayMessages.map((message, index) => {
-            // Handle both store messages and useChat messages
-            const isDBMessage =
-              "created_at" in message && typeof message.created_at === "string";
+    <>
+      <ScrollArea className="h-full w-full" viewportRef={scrollAreaViewportRef}>
+        <div className="flex justify-center">
+          <div 
+            className={`w-full max-w-4xl space-y-4 p-4 pb-32 transition-opacity duration-100 ${
+              isContentVisible ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            {displayMessages.map((message, index) => {
+              // Handle both store messages and useChat messages
+              const isDBMessage =
+                "created_at" in message && typeof message.created_at === "string";
 
-            // Check for experimental_attachments from useChat hook
-            const hasExperimentalAttachments =
-              "experimental_attachments" in message &&
-              message.experimental_attachments;
+              // Check for experimental_attachments from useChat hook
+              const hasExperimentalAttachments =
+                "experimental_attachments" in message &&
+                message.experimental_attachments;
 
-            return (
-              <MessageComponent
-                key={message.id}
-                message={{
-                  id: message.id,
-                  conversation_id: chatId || "",
-                  role: message.role as "user" | "assistant" | "system",
-                  content: message.content,
-                  created_at: isDBMessage
-                    ? (message as DBMessage).created_at
-                    : new Date().toISOString(),
-                  metadata: isDBMessage
-                    ? (message as DBMessage).metadata
-                    : null,
-                  parent_id: isDBMessage
-                    ? (message as DBMessage).parent_id
-                    : null,
-                  is_active: isDBMessage
-                    ? (message as DBMessage).is_active
-                    : true,
-                  attachments: isDBMessage
-                    ? (message as DBMessage).attachments
-                    : null,
-                  // Add experimental_attachments for useChat messages
-                  experimental_attachments: hasExperimentalAttachments
-                    ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      (message as any).experimental_attachments
-                    : undefined,
-                }}
-                isStreaming={
-                  isStreaming &&
-                  index === displayMessages.length - 1 &&
-                  message.role === "assistant"
-                }
-              />
-            );
-          })}
+              return (
+                <MessageComponent
+                  key={message.id}
+                  message={{
+                    id: message.id,
+                    conversation_id: chatId || "",
+                    role: message.role as "user" | "assistant" | "system",
+                    content: message.content,
+                    created_at: isDBMessage
+                      ? (message as DBMessage).created_at
+                      : new Date().toISOString(),
+                    metadata: isDBMessage
+                      ? (message as DBMessage).metadata
+                      : null,
+                    parent_id: isDBMessage
+                      ? (message as DBMessage).parent_id
+                      : null,
+                    is_active: isDBMessage
+                      ? (message as DBMessage).is_active
+                      : true,
+                    attachments: isDBMessage
+                      ? (message as DBMessage).attachments
+                      : null,
+                    // Add experimental_attachments for useChat messages
+                    experimental_attachments: hasExperimentalAttachments
+                      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (message as any).experimental_attachments
+                      : undefined,
+                  }}
+                  isStreaming={
+                    isStreaming &&
+                    index === displayMessages.length - 1 &&
+                    message.role === "assistant"
+                  }
+                />
+              );
+            })}
 
-          {/* Show loading indicator when waiting for AI response */}
-          {showLoadingIndicator && (
-            <div className="mb-8 flex py-4">
-              <div className="flex w-full flex-col">
-                <div className="text-sm leading-relaxed">
-                  {isThinking ? (
-                    <div className="flex items-center gap-2">
-                      <ShimmerText className="text-sm">
-                        AI is thinking...
-                      </ShimmerText>
-                    </div>
-                  ) : (
-                    <div className="text-muted-foreground flex items-center">
-                      <Spinner variant="ellipsis" size={20} />
-                    </div>
-                  )}
+            {/* Show loading indicator when waiting for AI response */}
+            {showLoadingIndicator && (
+              <div className="mb-8 flex py-4">
+                <div className="flex w-full flex-col">
+                  <div className="text-sm leading-relaxed">
+                    {isThinking ? (
+                      <div className="flex items-center gap-2">
+                        <ShimmerText className="text-sm">
+                          AI is thinking...
+                        </ShimmerText>
+                      </div>
+                    ) : (
+                      <div className="text-muted-foreground flex items-center">
+                        <Spinner variant="ellipsis" size={20} />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} />
+          </div>
         </div>
-      </div>
-    </ScrollArea>
+      </ScrollArea>
+      
+      {/* Scroll to bottom button */}
+      <ScrollToBottomButton 
+        isVisible={!isNearBottom && displayMessages.length > 0} 
+        onClick={scrollToBottom}
+      />
+    </>
   );
 }
