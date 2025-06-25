@@ -76,7 +76,7 @@ export function ChatMessages({
   }
 
   return (
-    <>
+    <div className="relative h-full">
       <ScrollArea className="h-full w-full" viewportRef={scrollAreaViewportRef}>
         <div className="flex justify-center">
           <div 
@@ -158,11 +158,11 @@ export function ChatMessages({
         </div>
       </ScrollArea>
       
-      {/* Scroll to bottom button */}
+      {/* Scroll to bottom button - positioned above the chat input area */}
       <ScrollToBottomButton 
         isVisible={!isNearBottom && displayMessages.length > 0} 
         onClick={scrollToBottom}
       />
-    </>
+    </div>
   );
 }

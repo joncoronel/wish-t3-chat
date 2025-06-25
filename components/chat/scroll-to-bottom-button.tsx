@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +18,7 @@ export function ScrollToBottomButton({
   return (
     <div
       className={cn(
-        "fixed bottom-24 right-6 z-20 transition-all duration-300 ease-in-out",
+        "absolute bottom-32 left-1/2 -translate-x-1/2 z-30 transition-all duration-200",
         isVisible 
           ? "translate-y-0 opacity-100" 
           : "translate-y-2 opacity-0 pointer-events-none",
@@ -28,11 +28,12 @@ export function ScrollToBottomButton({
       <Button
         onClick={onClick}
         size="sm"
-        variant="secondary"
-        className="h-10 w-10 rounded-full p-0 shadow-lg hover:shadow-xl"
+        variant="outline"
+        className="h-8 rounded-full pl-3 pr-4 shadow-md hover:shadow-lg bg-background/95 backdrop-blur-sm border-border/50"
         aria-label="Scroll to bottom"
       >
-        <ChevronDown className="h-4 w-4" />
+        <ArrowDown className="h-3.5 w-3.5 mr-1.5" />
+        <span className="text-xs font-medium">Jump to bottom</span>
       </Button>
     </div>
   );
