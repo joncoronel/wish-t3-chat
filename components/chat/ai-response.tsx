@@ -205,12 +205,8 @@ const CopyButton = ({
   );
 };
 
-
-// Cache for syntax highlighting results
-const highlightCache = new Map<string, string>();
-
-// Lazy-loaded code block with progressive syntax highlighting
-const CodeBlock = memo(({
+// Code block component - ideal version combining best of both approaches
+const CodeBlock = ({
   language,
   code,
   filename,
@@ -219,20 +215,10 @@ const CodeBlock = memo(({
   code: string;
   filename: string;
 }) => {
-  // Create cache key
-  const cacheKey = `${language}-${code.length}-${code.slice(0, 50)}`;
-  
-  // Initialize with cached value if available
-  const [html, setHtml] = useState<string | null>(() => {
-    return highlightCache.get(cacheKey) || null;
-  });
-  
-  // Single effect to handle highlighting
+  const [html, setHtml] = useState<string | null>(null);
+
   useEffect(() => {
-    // Skip if we already have HTML (from cache or previous render)
-    if (html) return;
-    
-    // Delay highlighting to avoid blocking navigation
+    // Delay highlighting to avoid blocking navigation (good optimization from "after")
     const timer = setTimeout(async () => {
       try {
         const highlighted = await codeToHtml(code, {
@@ -243,22 +229,60 @@ const CodeBlock = memo(({
           },
         });
         
-        // Cache the result
-        highlightCache.set(cacheKey, highlighted);
-        if (highlightCache.size > 200) {
-          const firstKey = highlightCache.keys().next().value;
-          if (firstKey) highlightCache.delete(firstKey);
-        }
-        
         setHtml(highlighted);
       } catch (error) {
-        // Silently fail
+        // Silently fail and show fallback
       }
-    }, 50);
+    }, 75); // Keep your faster timing
     
     return () => clearTimeout(timer);
-  }, [html, code, language, cacheKey]);
-  
+  }, [code, language]);
+
+  // Robust fallback structure from "before commit" - handles streaming properly
+  if (!html) {
+    return (
+      <div className="not-prose border-primary/30 dark:border-primary/20 my-4 h-auto w-full overflow-hidden rounded-md border">
+        {/* Header */}
+        <div className="bg-primary/20 dark:bg-primary/10 text-secondary-foreground border-primary/30 dark:border-primary/20 flex flex-row items-center border-b p-1">
+          <div className="flex grow flex-row items-center gap-2">
+            <div className="text-muted-foreground flex items-center gap-2 bg-transparent px-4 py-1.5 text-xs">
+              {(() => {
+                const Icon = getIconForFilename(filename);
+                const FinalIcon = Icon || SiJavascript;
+                return <FinalIcon className="h-4 w-4 shrink-0" />;
+              })()}
+              <span className="flex-1 truncate">{filename}</span>
+            </div>
+          </div>
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => downloadCode(code, filename)}
+              title="Download code"
+              className="shrink-0"
+            >
+              <Download size={14} className="text-muted-foreground" />
+            </Button>
+            <CopyButton code={code} />
+          </div>
+        </div>
+        <div className="bg-card dark:bg-muted mt-0 text-sm">
+          <pre className="py-0">
+            <code className="grid w-full overflow-x-auto bg-transparent py-4">
+              {code.split("\n").map((line, i) => (
+                <span key={i} className="relative w-full px-4">
+                  {line}
+                </span>
+              ))}
+            </code>
+          </pre>
+        </div>
+      </div>
+    );
+  }
+
+  // Highlighted version with comprehensive styling from "before commit"
   return (
     <div className="not-prose border-primary/30 dark:border-primary/20 my-4 h-auto w-full overflow-hidden rounded-md border">
       {/* Header */}
@@ -286,39 +310,38 @@ const CodeBlock = memo(({
           <CopyButton code={code} />
         </div>
       </div>
-      
-      {/* Progressive enhancement: plain -> highlighted */}
-      {html ? (
-        <div
-          className={cn(
-            "bg-card dark:bg-muted mt-0 text-sm",
-            "[&_pre]:py-0",
-            "[&_.shiki]:!bg-transparent",
-            "[&_code]:p-4",
-            "[&_code]:block",
-            "[&_code]:overflow-x-auto",
-            "[&_code]:text-sm",
-            "[&_code]:leading-relaxed",
-            // Dark mode styles for shiki
-            "dark:[&_.shiki]:!text-[var(--shiki-dark)]",
-            "dark:[&_.shiki_span]:!text-[var(--shiki-dark)]"
-          )}
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-      ) : (
-        <div className="bg-card dark:bg-muted mt-0 text-sm">
-          <pre className="py-0 overflow-x-auto">
-            <code className="block bg-transparent p-4 font-mono text-sm leading-relaxed">
-              {code}
-            </code>
-          </pre>
-        </div>
-      )}
+
+      {/* Content with comprehensive styling from "before commit" */}
+      <div
+        className={cn(
+          "mt-0 text-sm",
+          "[&_pre]:py-0",
+          "[&_.shiki]:!bg-card",
+          "[&_code]:w-full",
+          "[&_code]:grid",
+          "[&_code]:overflow-x-auto",
+          "[&_code]:bg-transparent",
+          "[&_code]:py-4",
+          "[&_.line]:px-4",
+          "[&_.line]:w-full",
+          "[&_.line]:relative",
+          // Dark mode styles
+          "dark:[&_.shiki]:!text-[var(--shiki-dark)]",
+          "dark:[&_.shiki]:!bg-muted",
+          "dark:[&_.shiki]:![font-style:var(--shiki-dark-font-style)]",
+          "dark:[&_.shiki]:![font-weight:var(--shiki-dark-font-weight)]",
+          "dark:[&_.shiki]:![text-decoration:var(--shiki-dark-text-decoration)]",
+          "dark:[&_.shiki_span]:!text-[var(--shiki-dark)]",
+          "dark:[&_.shiki_span]:![font-style:var(--shiki-dark-font-style)]",
+          "dark:[&_.shiki_span]:![font-weight:var(--shiki-dark-font-weight)]",
+          "dark:[&_.shiki_span]:![text-decoration:var(--shiki-dark-text-decoration)]",
+        )}
+      >
+        <div dangerouslySetInnerHTML={{ __html: html || "" }} />
+      </div>
     </div>
   );
-});
-
-CodeBlock.displayName = 'CodeBlock';
+};
 
 const components: Options["components"] = {
   ol: ({ children, className, ...props }) => (
@@ -409,7 +432,7 @@ const components: Options["components"] = {
     // For code blocks with language, extract language and render with syntax highlighting
     const match = className.match(/language-(\w+)/);
     const language = match ? match[1] : "text";
-    const code = String(children).replace(/\n$/, "");
+    const code = String(children);
     const filename = getFilenameForLanguage(language);
 
     return <CodeBlock language={language} code={code} filename={filename} />;
