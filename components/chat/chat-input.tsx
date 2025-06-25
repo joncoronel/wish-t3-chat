@@ -150,9 +150,9 @@ export function ChatInput({
   };
 
   return (
-    <div className={cn("flex justify-center p-4 pb-6", className)}>
-      <div className="w-full max-w-3xl">
-        <div className="bg-card overflow-hidden rounded-xl border shadow-lg">
+    <div className={cn("flex justify-center p-4 pb-6 pointer-events-none", className)}>
+      <div className="w-full max-w-3xl pointer-events-none">
+        <div className="bg-card overflow-hidden rounded-xl border shadow-lg pointer-events-auto">
           {/* Attachments area */}
           {(attachments.length > 0 || isUploading) && (
             <div className="border-b px-4 pt-3">

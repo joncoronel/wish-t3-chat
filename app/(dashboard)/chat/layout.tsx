@@ -19,10 +19,10 @@ export default async function ChatLayout({
       <div className="min-h-0 flex-1">{children}</div>
 
       {/* Input - Floating overlay at bottom */}
-      <div className="absolute right-0 bottom-0 left-0 z-10">
-        {/* Gradient background that avoids custom scrollbar area */}
-        <div className="from-background via-background/95 pointer-events-none absolute inset-0 right-3 bg-gradient-to-t to-transparent pt-6" />
-        {/* Input wrapper with proper pointer events */}
+      <div className="absolute right-0 bottom-0 left-0 z-10 pointer-events-none">
+        {/* Gradient background that avoids custom scrollbar area - no pointer events */}
+        <div className="from-background via-background/95 absolute inset-0 right-3 bg-gradient-to-t to-transparent pt-6" />
+        {/* Input wrapper - only this should capture pointer events */}
         <div className="relative">
           <ChatInputWrapper userId={user.id} />
         </div>
