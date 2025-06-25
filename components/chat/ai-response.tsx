@@ -34,18 +34,11 @@ import {
   SiVuedotjs,
   SiSvelte,
 } from "@icons-pack/react-simple-icons";
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useState, useMemo } from "react";
 import type { HTMLAttributes } from "react";
 import ReactMarkdown, { type Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { type BundledLanguage, codeToHtml } from "shiki";
-import {
-  transformerNotationDiff,
-  transformerNotationErrorLevel,
-  transformerNotationFocus,
-  transformerNotationHighlight,
-  transformerNotationWordHighlight,
-} from "@shikijs/transformers";
 
 export type AIResponseProps = HTMLAttributes<HTMLDivElement> & {
   options?: Options;
@@ -212,8 +205,12 @@ const CopyButton = ({
   );
 };
 
-// Code block component
-const CodeBlock = ({
+
+// Cache for syntax highlighting results
+const highlightCache = new Map<string, string>();
+
+// Lazy-loaded code block with progressive syntax highlighting
+const CodeBlock = memo(({
   language,
   code,
   filename,
@@ -222,10 +219,21 @@ const CodeBlock = ({
   code: string;
   filename: string;
 }) => {
-  const [html, setHtml] = useState<string | null>(null);
-
+  // Create cache key
+  const cacheKey = `${language}-${code.length}-${code.slice(0, 50)}`;
+  
+  // Initialize with cached value if available
+  const [html, setHtml] = useState<string | null>(() => {
+    return highlightCache.get(cacheKey) || null;
+  });
+  
+  // Single effect to handle highlighting
   useEffect(() => {
-    const highlight = async () => {
+    // Skip if we already have HTML (from cache or previous render)
+    if (html) return;
+    
+    // Delay highlighting to avoid blocking navigation
+    const timer = setTimeout(async () => {
       try {
         const highlighted = await codeToHtml(code, {
           lang: language as BundledLanguage,
@@ -233,77 +241,24 @@ const CodeBlock = ({
             light: "github-light",
             dark: "github-dark-default",
           },
-          transformers: [
-            transformerNotationDiff({
-              matchAlgorithm: "v3",
-            }),
-            transformerNotationHighlight({
-              matchAlgorithm: "v3",
-            }),
-            transformerNotationWordHighlight({
-              matchAlgorithm: "v3",
-            }),
-            transformerNotationFocus({
-              matchAlgorithm: "v3",
-            }),
-            transformerNotationErrorLevel({
-              matchAlgorithm: "v3",
-            }),
-          ],
         });
+        
+        // Cache the result
+        highlightCache.set(cacheKey, highlighted);
+        if (highlightCache.size > 200) {
+          const firstKey = highlightCache.keys().next().value;
+          if (firstKey) highlightCache.delete(firstKey);
+        }
+        
         setHtml(highlighted);
       } catch (error) {
-        // Silently fail and show fallback
+        // Silently fail
       }
-    };
-
-    highlight();
-  }, [code, language]);
-
-  if (!html) {
-    // Fallback for when syntax highlighting fails
-    return (
-      <div className="not-prose border-primary/30 dark:border-primary/20 my-4 h-auto w-full overflow-hidden rounded-md border">
-        {/* Header */}
-        <div className="bg-primary/20 dark:bg-primary/10 text-secondary-foreground border-primary/30 dark:border-primary/20 flex flex-row items-center border-b p-1">
-          <div className="flex grow flex-row items-center gap-2">
-            <div className="text-muted-foreground flex items-center gap-2 bg-transparent px-4 py-1.5 text-xs">
-              {(() => {
-                const Icon = getIconForFilename(filename);
-                const FinalIcon = Icon || SiJavascript;
-                return <FinalIcon className="h-4 w-4 shrink-0" />;
-              })()}
-              <span className="flex-1 truncate">{filename}</span>
-            </div>
-          </div>
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => downloadCode(code, filename)}
-              title="Download code"
-              className="shrink-0"
-            >
-              <Download size={14} className="text-muted-foreground" />
-            </Button>
-            <CopyButton code={code} />
-          </div>
-        </div>
-        <div className="bg-card dark:bg-muted mt-0 text-sm">
-          <pre className="py-0">
-            <code className="grid w-full overflow-x-auto bg-transparent py-4">
-              {code.split("\n").map((line, i) => (
-                <span key={i} className="relative w-full px-4">
-                  {line}
-                </span>
-              ))}
-            </code>
-          </pre>
-        </div>
-      </div>
-    );
-  }
-
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  }, [html, code, language, cacheKey]);
+  
   return (
     <div className="not-prose border-primary/30 dark:border-primary/20 my-4 h-auto w-full overflow-hidden rounded-md border">
       {/* Header */}
@@ -331,65 +286,39 @@ const CodeBlock = ({
           <CopyButton code={code} />
         </div>
       </div>
-
-      {/* Content */}
-      <div
-        className={cn(
-          "mt-0 text-sm",
-          "[&_pre]:py-0",
-          "[&_.shiki]:!bg-card",
-          "[&_code]:w-full",
-          "[&_code]:grid",
-          "[&_code]:overflow-x-auto",
-          "[&_code]:bg-transparent",
-          "[&_code]:py-4",
-          "[&_.line]:px-4",
-          "[&_.line]:w-full",
-          "[&_.line]:relative",
-          // Dark mode styles
-          "dark:[&_.shiki]:!text-[var(--shiki-dark)]",
-          "dark:[&_.shiki]:!bg-muted",
-          "dark:[&_.shiki]:![font-style:var(--shiki-dark-font-style)]",
-          "dark:[&_.shiki]:![font-weight:var(--shiki-dark-font-weight)]",
-          "dark:[&_.shiki]:![text-decoration:var(--shiki-dark-text-decoration)]",
-          "dark:[&_.shiki_span]:!text-[var(--shiki-dark)]",
-          "dark:[&_.shiki_span]:![font-style:var(--shiki-dark-font-style)]",
-          "dark:[&_.shiki_span]:![font-weight:var(--shiki-dark-font-weight)]",
-          "dark:[&_.shiki_span]:![text-decoration:var(--shiki-dark-text-decoration)]",
-          // Line highlighting
-          "[&_.line.highlighted]:bg-[color-mix(in_oklch,_hsl(var(--primary))_8%,_transparent)]",
-          "[&_.line.highlighted]:after:bg-primary",
-          "[&_.line.highlighted]:after:absolute",
-          "[&_.line.highlighted]:after:left-0",
-          "[&_.line.highlighted]:after:top-0",
-          "[&_.line.highlighted]:after:bottom-0",
-          "[&_.line.highlighted]:after:w-0.5",
-          "dark:[&_.line.highlighted]:!bg-[color-mix(in_oklch,_hsl(var(--primary))_12%,_transparent)]",
-          // Diff highlighting
-          "[&_.line.diff]:after:absolute",
-          "[&_.line.diff]:after:left-0",
-          "[&_.line.diff]:after:top-0",
-          "[&_.line.diff]:after:bottom-0",
-          "[&_.line.diff]:after:w-0.5",
-          "[&_.line.diff.add]:bg-emerald-50",
-          "[&_.line.diff.add]:after:bg-emerald-500",
-          "[&_.line.diff.remove]:bg-rose-50",
-          "[&_.line.diff.remove]:after:bg-rose-500",
-          "dark:[&_.line.diff.add]:!bg-emerald-500/10",
-          "dark:[&_.line.diff.remove]:!bg-rose-500/10",
-          // Focus highlighting
-          "[&_code:has(.focused)_.line]:blur-[2px]",
-          "[&_code:has(.focused)_.line.focused]:blur-none",
-          // Word highlighting
-          "bg-[color-mix(in_oklch,_hsl(var(--primary))_25%,_transparent)]! [&_.highlighted-word]:rounded-sm",
-          "dark:[&_.highlighted-word]:!bg-[color-mix(in_oklch,_hsl(var(--primary))_30%,_transparent)]!",
-        )}
-      >
-        <div dangerouslySetInnerHTML={{ __html: html || "" }} />
-      </div>
+      
+      {/* Progressive enhancement: plain -> highlighted */}
+      {html ? (
+        <div
+          className={cn(
+            "bg-card dark:bg-muted mt-0 text-sm",
+            "[&_pre]:py-0",
+            "[&_.shiki]:!bg-transparent",
+            "[&_code]:p-4",
+            "[&_code]:block",
+            "[&_code]:overflow-x-auto",
+            "[&_code]:text-sm",
+            "[&_code]:leading-relaxed",
+            // Dark mode styles for shiki
+            "dark:[&_.shiki]:!text-[var(--shiki-dark)]",
+            "dark:[&_.shiki_span]:!text-[var(--shiki-dark)]"
+          )}
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      ) : (
+        <div className="bg-card dark:bg-muted mt-0 text-sm">
+          <pre className="py-0 overflow-x-auto">
+            <code className="block bg-transparent p-4 font-mono text-sm leading-relaxed">
+              {code}
+            </code>
+          </pre>
+        </div>
+      )}
     </div>
   );
-};
+});
+
+CodeBlock.displayName = 'CodeBlock';
 
 const components: Options["components"] = {
   ol: ({ children, className, ...props }) => (
