@@ -34,7 +34,7 @@ import {
   SiVuedotjs,
   SiSvelte,
 } from "@icons-pack/react-simple-icons";
-import { memo, useEffect, useState, useMemo } from "react";
+import { memo, useEffect, useState } from "react";
 import type { HTMLAttributes } from "react";
 import ReactMarkdown, { type Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -231,6 +231,7 @@ const CodeBlock = ({
         
         setHtml(highlighted);
       } catch (error) {
+        console.error(error);
         // Silently fail and show fallback
       }
     }, 75); // Keep your faster timing
