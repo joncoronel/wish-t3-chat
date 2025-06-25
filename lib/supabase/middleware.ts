@@ -37,12 +37,18 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const publicRoutes = ["/login", "/auth/callback", "/auth/confirm", "/"];
+  const publicRoutes = ["/login", "/signup",];
+  const authRoutes = ["/chat", "/settings"];
 
-  if (!user && !publicRoutes.includes(request.nextUrl.pathname)) {
-    // no user, potentially respond by redirecting the user to the login page
+  if (!user && authRoutes.some((route) => request.nextUrl.pathname.startsWith(route))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  if (user && publicRoutes.some((route) => request.nextUrl.pathname.startsWith(route))) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/chat";
     return NextResponse.redirect(url);
   }
 
