@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { UserPreferences } from "@/types";
+import { cache } from "react";
 
 export async function getUserPreferences(
   userId: string,
@@ -26,36 +27,40 @@ export async function getUserPreferences(
 }
 
 // Combined function to fetch both user preferences and API keys in a single query
-export async function getUserSettingsData(userId: string): Promise<{
-  preferences: UserPreferences;
-  apiKeys: Record<string, string>;
-}> {
-  const supabase = await createClient();
+export const getUserSettingsData = cache(
+  async (
+    userId: string,
+  ): Promise<{
+    preferences: UserPreferences;
+    apiKeys: Record<string, string>;
+  }> => {
+    const supabase = await createClient();
 
-  const { data: settings, error } = await supabase
-    .from("user_settings")
-    .select("preferences, api_keys")
-    .eq("user_id", userId)
-    .single();
+    const { data: settings, error } = await supabase
+      .from("user_settings")
+      .select("preferences, api_keys")
+      .eq("user_id", userId)
+      .single();
 
-  if (error) {
-    // For new users, it's normal to not have settings yet
-    if (error.code === "PGRST116") {
-      // Not found - return defaults
+    if (error) {
+      // For new users, it's normal to not have settings yet
+      if (error.code === "PGRST116") {
+        // Not found - return defaults
+        return {
+          preferences: { apiKeyStorageMode: "encrypted" },
+          apiKeys: {},
+        };
+      }
+      console.error("Error fetching user settings:", error);
       return {
         preferences: { apiKeyStorageMode: "encrypted" },
         apiKeys: {},
       };
     }
-    console.error("Error fetching user settings:", error);
-    return {
-      preferences: { apiKeyStorageMode: "encrypted" },
-      apiKeys: {},
-    };
-  }
 
-  return {
-    preferences: settings?.preferences || { apiKeyStorageMode: "encrypted" },
-    apiKeys: settings?.api_keys || {},
-  };
-}
+    return {
+      preferences: settings?.preferences || { apiKeyStorageMode: "encrypted" },
+      apiKeys: settings?.api_keys || {},
+    };
+  },
+);

@@ -3,11 +3,7 @@
 import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { useChat } from "ai/react";
 
-import {
-  useConversation,
-  useMessages,
-  useConversations,
-} from "@/hooks/use-conversations";
+import { useMessages, useConversations } from "@/hooks/use-conversations";
 import { useChatUrl } from "@/hooks/use-chat-url";
 import { useChatLoading } from "@/hooks/use-chat-loading";
 import { useGlobalModel } from "@/hooks/use-global-model";
@@ -128,16 +124,14 @@ export function ChatInterface({
   } as const;
 
   // Use SWR to get conversation and messages (only when we have a chatId)
-  const { isLoading: isLoadingConversation } = useConversation(
-    chatId || "",
-    userId || "",
-  );
+
   const { data: messages = [], isLoading: isLoadingMessages } = useMessages(
     chatId || "",
   );
 
   // Get all conversations for welcome screen optimistic updates
-  const { data: allConversations = [] } = useConversations(userId || "");
+  const { data: allConversations = [], isLoading: isLoadingConversations } =
+    useConversations(userId || "");
 
   // Ensure we sync the active conversation ID when the URL changes
   useEffect(() => {
@@ -402,7 +396,7 @@ export function ChatInterface({
   // Check if we're loading messages for a specific chat
   const isLoadingChatContent =
     chatId &&
-    (isLoadingConversation || isLoadingMessages) &&
+    (isLoadingConversations || isLoadingMessages) &&
     chatMessages.length === 0;
 
   return (

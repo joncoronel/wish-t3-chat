@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Conversation, Message } from "@/types";
+import { cache } from "react";
 
-export async function getConversations(
-  userId: string,
-): Promise<Conversation[]> {
+export const getConversations = cache(async (userId: string) => {
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -18,7 +17,7 @@ export async function getConversations(
   }
 
   return data || [];
-}
+});
 
 export async function getConversation(
   conversationId: string,

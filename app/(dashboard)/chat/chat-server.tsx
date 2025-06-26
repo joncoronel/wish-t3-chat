@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import { SWRConfig } from "swr";
 
-import { getConversation, getMessages } from "@/lib/data/conversations";
+import { getMessages } from "@/lib/data/conversations";
 import { ChatPageClient } from "./chat-page-client";
 import { getUser } from "@/lib/auth";
+import { getConversations } from "@/lib/data/conversations";
+import { getUserSettingsData } from "@/lib/data/user-preferences";
 
 interface ChatPageProps {
   searchParams: Promise<{ id?: string }>;
@@ -20,14 +22,18 @@ export default async function ChatServer({ searchParams }: ChatPageProps) {
     redirect("/login");
   }
 
+  const conversations = await getConversations(user.id);
+  const { apiKeys, preferences } = await getUserSettingsData(user.id);
+
   // If we have a chat ID, prefetch the data on the server for initial load
   if (chatId) {
-    const conversationPromise = getConversation(chatId, user.id);
     const messagesPromise = getMessages(chatId);
 
     const fallbackData: Record<string, unknown> = {
-      [`conversation-${chatId}-${user.id}`]: conversationPromise,
       [`messages-${chatId}`]: messagesPromise,
+      [`encrypted-api-keys-${user.id}`]: apiKeys,
+      [`user-preferences-${user.id}`]: preferences,
+      [`conversations-${user.id}`]: conversations,
     };
 
     return (
@@ -41,6 +47,16 @@ export default async function ChatServer({ searchParams }: ChatPageProps) {
     );
   }
 
+  const fallbackData: Record<string, unknown> = {
+    [`encrypted-api-keys-${user.id}`]: apiKeys,
+    [`user-preferences-${user.id}`]: preferences,
+    [`conversations-${user.id}`]: conversations,
+  };
+
   // No chat ID - render the welcome screen
-  return <ChatPageClient userId={user.id} />;
+  return (
+    <SWRConfig value={{ fallback: fallbackData }}>
+      <ChatPageClient userId={user.id} />
+    </SWRConfig>
+  );
 }

@@ -1,47 +1,43 @@
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { SWRConfig } from "swr";
-import { getUser } from "@/lib/auth";
-import { getConversations } from "@/lib/data/conversations";
-import { getUserSettingsData } from "@/lib/data/user-preferences";
+
 import { AppSidebarSkeleton } from "@/components/app-sidebar-skeleton";
 import { SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
+
+import { ChatInputSection } from "./chat/chat-input-section";
+import AppSidebarServer from "@/components/app-sidebar-server";
 
 export async function DashboardContent({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   // Fetch data on the server for performance - using unified settings fetch
-  const conversationsPromise = getConversations(user.id);
-  const userSettingsPromise = getUserSettingsData(user.id);
 
   return (
-    <SWRConfig
-      value={{
-        fallback: {
-          [`conversations-${user.id}`]: conversationsPromise,
-          [`encrypted-api-keys-${user.id}`]: userSettingsPromise.then(
-            (data) => data.apiKeys,
-          ),
-          [`user-preferences-${user.id}`]: userSettingsPromise.then(
-            (data) => data.preferences,
-          ),
-        },
-      }}
-    >
+    <SWRConfig>
       <Suspense fallback={<AppSidebarSkeleton />}>
-        <AppSidebar userId={user.id} user={user} />
+        <AppSidebarServer />
       </Suspense>
       <SidebarInset className="flex flex-col overflow-clip">
-        <main className="flex-1 overflow-hidden">{children}</main>
+        <main className="flex-1 overflow-hidden">
+          <div className="relative flex h-full flex-col">
+            {/* Content Area - This changes based on route with its own scroll */}
+            <div className="min-h-0 flex-1">{children}</div>
+
+            {/* Input - Floating overlay at bottom */}
+            <div className="pointer-events-none absolute right-0 bottom-0 left-0 z-10">
+              {/* Gradient background that avoids custom scrollbar area - no pointer events */}
+              <div className="from-background via-background/95 absolute inset-0 right-3 bg-gradient-to-t to-transparent pt-6" />
+              {/* Input wrapper - only this should capture pointer events */}
+              <div className="animate-in slide-in-from-bottom-4 fade-in relative duration-200 ease-in-out">
+                <Suspense fallback={null}>
+                  <ChatInputSection />
+                </Suspense>
+              </div>
+            </div>
+          </div>
+        </main>
       </SidebarInset>
     </SWRConfig>
   );
