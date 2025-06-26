@@ -30,11 +30,10 @@ export async function DashboardContent({
               {/* Gradient background that avoids custom scrollbar area - no pointer events */}
               <div className="from-background via-background/95 absolute inset-0 right-3 bg-gradient-to-t to-transparent pt-6" />
               {/* Input wrapper - only this should capture pointer events */}
-              <div className="animate-in slide-in-from-bottom-4 fade-in relative duration-200 ease-in-out">
-                <Suspense fallback={null}>
-                  <ChatInputSection />
-                </Suspense>
-              </div>
+
+              <Suspense fallback={null}>
+                <ChatInputSection />
+              </Suspense>
             </div>
           </div>
         </main>
