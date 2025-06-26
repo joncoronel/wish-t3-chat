@@ -9,6 +9,8 @@ import { generateConversationTitle } from "@/lib/utils";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { v4 as uuidv4 } from "uuid";
+import { useAtom } from "jotai";
+import { selectedPersonaAtom } from "@/store/persona";
 import type { Conversation, ChatAttachment } from "@/types";
 
 interface ChatInputWrapperProps {
@@ -22,12 +24,14 @@ export interface ChatMessageEventDetail {
   chatId: string;
   message: string;
   attachments?: ChatAttachment[];
+  personaId?: string;
 }
 
 export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
   const { chatId, navigateToChat } = useChatUrl();
   const { setLoading } = useChatLoading();
   const { selectedModel } = useGlobalModel();
+  const [selectedPersona] = useAtom(selectedPersonaAtom);
 
   // Get current conversations for optimistic updates
   const { data: allConversations = [] } = useConversations(userId || "");
@@ -61,10 +65,11 @@ export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
           user_id: userId,
           title: generateConversationTitle(messageContent),
           model: selectedModel,
-          system_prompt: null,
+          system_prompt: selectedPersona?.system_prompt || null,
           is_shared: false,
           share_token: null,
           folder_id: null,
+          persona_id: selectedPersona?.id || null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
@@ -82,17 +87,26 @@ export function ChatInputWrapper({ userId }: ChatInputWrapperProps) {
         // Navigate to new conversation with the initial message
         navigateToChat(conversationId);
 
-        // Store the message and attachments for the ChatInterface to pick up
+        // Store the message, attachments, and persona for the ChatInterface to pick up
         sessionStorage.setItem(
           `pendingMessage-${conversationId}`,
-          JSON.stringify({ message: messageContent, attachments }),
+          JSON.stringify({ 
+            message: messageContent, 
+            attachments,
+            personaId: selectedPersona?.id 
+          }),
         );
       } else {
         // For existing chats, dispatch a custom event for the ChatInterface to handle
         const event = new CustomEvent<ChatMessageEventDetail>(
           CHAT_MESSAGE_EVENT,
           {
-            detail: { chatId, message: messageContent, attachments },
+            detail: { 
+              chatId, 
+              message: messageContent, 
+              attachments,
+              personaId: selectedPersona?.id 
+            },
           },
         );
         window.dispatchEvent(event);

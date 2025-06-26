@@ -66,6 +66,7 @@ export interface Database {
           is_shared: boolean;
           share_token: string | null;
           folder_id: string | null;
+          persona_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -78,6 +79,7 @@ export interface Database {
           is_shared?: boolean;
           share_token?: string | null;
           folder_id?: string | null;
+          persona_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -90,6 +92,7 @@ export interface Database {
           is_shared?: boolean;
           share_token?: string | null;
           folder_id?: string | null;
+          persona_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -237,6 +240,79 @@ export interface Database {
           tokens_used?: number;
           cost_usd?: number | null;
           created_at?: string;
+        };
+      };
+      personas: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          description: string | null;
+          system_prompt: string;
+          avatar_url: string | null;
+          temperature: number;
+          max_tokens: number;
+          is_default: boolean;
+          metadata: Record<string, unknown>;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          description?: string | null;
+          system_prompt: string;
+          avatar_url?: string | null;
+          temperature?: number;
+          max_tokens?: number;
+          is_default?: boolean;
+          metadata?: Record<string, unknown>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          description?: string | null;
+          system_prompt?: string;
+          avatar_url?: string | null;
+          temperature?: number;
+          max_tokens?: number;
+          is_default?: boolean;
+          metadata?: Record<string, unknown>;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      persona_memories: {
+        Row: {
+          id: string;
+          persona_id: string;
+          conversation_id: string;
+          summary: string;
+          key_points: Array<string>;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          persona_id: string;
+          conversation_id: string;
+          summary: string;
+          key_points?: Array<string>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          persona_id?: string;
+          conversation_id?: string;
+          summary?: string;
+          key_points?: Array<string>;
+          created_at?: string;
+          updated_at?: string;
         };
       };
     };

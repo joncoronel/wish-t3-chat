@@ -14,7 +14,10 @@ import { Send, Square, Paperclip } from "lucide-react";
 import { ModelSelector } from "./model-selector";
 import { FileDropZone } from "./file-drop-zone";
 import { AttachmentList } from "./file-attachment";
+import { PersonaSelector } from "@/components/personas/persona-selector";
 import { useGlobalModel } from "@/hooks/use-global-model";
+import { useAtom } from "jotai";
+import { selectedPersonaAtom } from "@/store/persona";
 
 import { cn } from "@/lib/utils";
 import type { ChatAttachment } from "@/types";
@@ -45,6 +48,7 @@ export function ChatInput({
   const [isUploading, setIsUploading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { selectedModel, selectModel } = useGlobalModel();
+  const [selectedPersona, setSelectedPersona] = useAtom(selectedPersonaAtom);
 
   const handleSubmit = () => {
     const trimmedMessage = message.trim();
@@ -198,6 +202,12 @@ export function ChatInput({
                 disabled={disabled || isStreaming}
                 className="h-8"
                 userId={userId}
+              />
+
+              <PersonaSelector
+                selectedPersona={selectedPersona}
+                onSelect={setSelectedPersona}
+                className="h-8"
               />
 
               {/* Search button */}

@@ -21,6 +21,7 @@ const chatRequestSchema = z.object({
   temperature: z.number().min(0).max(2).optional().default(0.7),
   max_tokens: z.number().min(1).max(200000).optional().default(8192),
   conversationId: z.string().optional(),
+  personaId: z.string().optional(),
   apiKeys: z.record(z.string()).optional(), // Client-provided API keys
   attachments: z
     .array(
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest) {
       temperature,
       max_tokens,
       conversationId,
+      personaId,
       apiKeys,
       attachments,
     } = chatRequestSchema.parse(body);
@@ -124,7 +126,7 @@ export async function POST(req: NextRequest) {
     // First ensure the conversation exists before saving any messages
     const { data: existingConversation, error: fetchError } = await supabase
       .from("conversations")
-      .select("id, system_prompt")
+      .select("id, system_prompt, persona_id")
       .eq("id", validConversationId)
       .eq("user_id", user.id)
       .single();
@@ -150,6 +152,7 @@ export async function POST(req: NextRequest) {
         user_id: user.id,
         title: title,
         model: model,
+        persona_id: personaId || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
@@ -195,13 +198,35 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Get persona system prompt if persona is selected
+    let systemPrompt = existingConversation?.system_prompt;
+    let temperatureOverride = temperature; // Use request temperature by default
+    let maxTokensOverride: number | undefined;
+
+    // Check for persona in existing conversation or from request
+    const effectivePersonaId = existingConversation?.persona_id || personaId;
+    
+    if (effectivePersonaId) {
+      const { data: persona } = await supabase
+        .from("personas")
+        .select("system_prompt, temperature, max_tokens")
+        .eq("id", effectivePersonaId)
+        .single();
+
+      if (persona) {
+        systemPrompt = persona.system_prompt;
+        temperatureOverride = persona.temperature;
+        maxTokensOverride = persona.max_tokens;
+      }
+    }
+
     // Combine existing messages with the new user message for full context
     const allMessages = [
       // Add system prompt if it exists, otherwise use a default one
       {
         role: "system" as const,
         content:
-          existingConversation?.system_prompt ||
+          systemPrompt ||
           "You are a helpful AI assistant. You provide accurate, thoughtful, and detailed responses while maintaining context throughout the conversation. You can help with a wide variety of tasks including answering questions, writing, analysis, coding, and creative tasks. When users upload documents, the text content will be extracted and provided to you directly. You should analyze this content and answer questions about it as if you can read the document. Do not say you cannot access files when the content is provided to you in the message.",
       },
       ...existingMessages
@@ -360,8 +385,8 @@ export async function POST(req: NextRequest) {
       const result = await streamText({
         model: languageModel,
         messages: coreMessages,
-        temperature,
-        maxTokens: max_tokens,
+        temperature: temperatureOverride,
+        maxTokens: maxTokensOverride || max_tokens,
         async onFinish({ text, usage }) {
           console.log("AI response finished:", text);
           console.log("Usage:", usage);

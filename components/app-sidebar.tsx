@@ -11,6 +11,7 @@ import {
   Settings,
   Share,
   Plus,
+  Users,
 } from "lucide-react";
 import { useChatUrl } from "@/hooks/use-chat-url";
 import { useChatLoading } from "@/hooks/use-chat-loading";
@@ -416,6 +417,12 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
                 <Link href="/settings">
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/personas">
+                  <Users className="mr-2 h-4 w-4" />
+                  AI Personas
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>

@@ -53,6 +53,8 @@ export async function createConversation(
   userId: string,
   title: string,
   model: string = "gpt-4",
+  personaId?: string | null,
+  systemPrompt?: string | null,
 ): Promise<Conversation | null> {
   const supabase = createClient();
 
@@ -62,10 +64,11 @@ export async function createConversation(
       user_id: userId,
       title,
       model,
-      system_prompt: null,
+      system_prompt: systemPrompt || null,
       is_shared: false,
       share_token: null,
       folder_id: null,
+      persona_id: personaId || null,
     })
     .select()
     .single();

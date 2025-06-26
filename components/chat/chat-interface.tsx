@@ -198,6 +198,7 @@ export function ChatInterface({
       messageContent: string,
       attachments?: ChatAttachment[],
       fromPendingMessage = false,
+      personaId?: string,
     ) => {
       if (!userId) {
         toast.error("Please sign in to send messages");
@@ -238,6 +239,7 @@ export function ChatInterface({
               {
                 body: {
                   attachments,
+                  personaId,
                 },
               },
             );
@@ -283,7 +285,7 @@ export function ChatInterface({
           // Store the message and attachments for when the component remounts
           sessionStorage.setItem(
             `pendingMessage-${conversationId}`,
-            JSON.stringify({ message: messageContent, attachments }),
+            JSON.stringify({ message: messageContent, attachments, personaId }),
           );
 
           // Don't immediately revalidate - let the onFinish callback handle it
@@ -320,6 +322,7 @@ export function ChatInterface({
                 {
                   body: {
                     attachments,
+                    personaId,
                   },
                 },
               ),
@@ -361,7 +364,7 @@ export function ChatInterface({
           // Try to parse as JSON (new format with attachments)
           const parsed = JSON.parse(pendingData);
           setTimeout(() => {
-            handleSendMessage(parsed.message, parsed.attachments, true);
+            handleSendMessage(parsed.message, parsed.attachments, true, parsed.personaId);
           }, 100);
         } catch {
           // Fallback to old format (just string message)
@@ -374,9 +377,9 @@ export function ChatInterface({
 
     // Listen for messages from ChatInputWrapper for existing chats
     const handleChatMessage = (event: CustomEvent) => {
-      const { chatId: eventChatId, message, attachments } = event.detail;
+      const { chatId: eventChatId, message, attachments, personaId } = event.detail;
       if (eventChatId === chatId) {
-        handleSendMessage(message, attachments);
+        handleSendMessage(message, attachments, false, personaId);
       }
     };
 
