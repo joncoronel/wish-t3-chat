@@ -171,6 +171,42 @@ export async function deleteConversation(
   }
 }
 
+export async function deleteAllConversations(userId: string): Promise<void> {
+  const supabase = createClient();
+
+  // Delete function for the actual database operation
+  const deleteFunction = async () => {
+    const { error } = await supabase
+      .from("conversations")
+      .delete()
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error("Error deleting all conversations:", error);
+      throw error;
+    }
+    return [];
+  };
+
+  try {
+    // Use mutate with optimistic updates
+    await mutate(`conversations-${userId}`, deleteFunction(), {
+      populateCache: false,
+      revalidate: true,
+      optimisticData: [],
+      rollbackOnError: true,
+    });
+
+    // Clear all conversation and messages caches
+    // This is a bit tricky since we don't have all conversation IDs
+    // But the main cache clear should be sufficient
+    // Individual conversation/message caches will be cleared on next access
+  } catch (error) {
+    console.error("Delete all failed:", error);
+    throw error;
+  }
+}
+
 // SWR Hooks
 export function useConversations(userId: string) {
   return useSWR(
