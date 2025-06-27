@@ -11,6 +11,19 @@ const nextConfig: NextConfig = {
   experimental: {
     ppr: "incremental",
   },
+  // Exclude Supabase Edge Functions from Next.js compilation
+  // transpilePackages: [],
+  // typescript: {
+  //   ignoreBuildErrors: false,
+  // },
+  // webpack: (config) => {
+  //   // Ignore Supabase Edge Functions directory
+  //   config.watchOptions = {
+  //     ...config.watchOptions,
+  //     ignored: ["**/supabase/functions/**"],
+  //   };
+  //   return config;
+  // },
 };
 
 export default nextConfig;

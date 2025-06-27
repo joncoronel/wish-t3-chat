@@ -501,9 +501,12 @@ async function saveMessageToDatabase(
   },
 ) {
   try {
+    // Generate message ID beforehand so we can link attachments to it
+    const messageId = uuidv4();
+
     // Insert the message
     const { error: msgError } = await supabase.from("messages").insert({
-      id: uuidv4(), // Ensure each message has a unique ID
+      id: messageId,
       conversation_id: conversationId,
       role,
       content,
@@ -516,6 +519,22 @@ async function saveMessageToDatabase(
     if (msgError) {
       console.error("Error saving message:", msgError);
       return { error: msgError };
+    }
+
+    // Link attachments to this message for proper cascade deletion
+    if (attachments && attachments.length > 0) {
+      const attachmentIds = attachments.map(att => att.id);
+      const { error: attachmentError } = await supabase
+        .from("attachments")
+        .update({ message_id: messageId })
+        .in("id", attachmentIds)
+        .eq("user_id", userId); // Ensure user can only link their own attachments
+
+      if (attachmentError) {
+        console.error("Error linking attachments to message:", attachmentError);
+        // Don't fail the entire message save if attachment linking fails
+        // The attachments will still be accessible via user_id
+      }
     }
 
     // Update conversation timestamp
