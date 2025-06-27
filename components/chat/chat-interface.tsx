@@ -143,13 +143,13 @@ export function ChatInterface({
     chatId || "",
     branchName,
   );
-  
+
   // Prefetch messages for all branches to make switching instant
   const { branches } = useConversationBranches(chatId || "");
   useEffect(() => {
     if (branches && branches.length > 1 && chatId) {
       // Trigger SWR to prefetch messages for all branches
-      branches.forEach(branch => {
+      branches.forEach((branch) => {
         if (branch.branch_name !== branchName) {
           // This will trigger the useMessages hook internally to cache the data
           mutate(`messages-${chatId}-${branch.branch_name}`);

@@ -200,10 +200,11 @@ export async function POST(req: NextRequest) {
       if (lastMessage?.role === "user") {
         // Save the original user message content to database (not the enhanced version)
         // The enhanced version is only for AI context
+        // For image-only messages, use empty string content but still save with attachments
         const { error: msgError } = await saveMessageToDatabase(supabase, {
           conversationId: validConversationId,
           role: "user",
-          content: lastMessage.content, // Save original message, not enhanced
+          content: lastMessage.content || "", // Use empty string for image-only messages
           userId: user.id,
           branchName,
           attachments,
@@ -256,12 +257,14 @@ export async function POST(req: NextRequest) {
     ];
 
     // Add the new user message (only the last user message from normalized messages)
+    // Allow messages with empty content if they have attachments (image-only messages)
     const lastUserMessage = normalizedMessages
       .slice()
       .reverse()
       .find(
         (msg) =>
-          msg.role === "user" && msg.content && msg.content.trim() !== "",
+          msg.role === "user" && 
+          ((msg.content && msg.content.trim() !== "") || (attachments && attachments.length > 0)),
       );
 
     if (lastUserMessage) {
@@ -277,8 +280,8 @@ export async function POST(req: NextRequest) {
         // Process attachments for AI vision
         const processedContent = [];
 
-        // Add the text content first
-        if (lastUserMessage.content.trim()) {
+        // Add the text content first (if it exists and is not empty)
+        if (lastUserMessage.content && lastUserMessage.content.trim()) {
           processedContent.push({
             type: "text",
             text: lastUserMessage.content,
@@ -329,10 +332,13 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        allMessages.push({
-          role: lastUserMessage.role,
-          content: processedContent,
-        });
+        // Only add message if we have content (text or attachments)
+        if (processedContent.length > 0) {
+          allMessages.push({
+            role: lastUserMessage.role,
+            content: processedContent,
+          });
+        }
       }
     }
 
