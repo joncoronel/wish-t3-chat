@@ -3,6 +3,7 @@
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Moon, Sun, Monitor } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function ThemeSwitcher() {
   const [mounted, setMounted] = useState(false);
@@ -33,9 +34,9 @@ export function ThemeSwitcher() {
 
   if (!mounted) {
     return (
-      <button className="bg-background hover:bg-accent hover:text-accent-foreground flex h-9 w-9 items-center justify-center rounded-md border">
+      <Button variant="ghost" size="icon" className="h-8 w-8">
         <div className="bg-muted h-4 w-4 animate-pulse rounded" />
-      </button>
+      </Button>
     );
   }
 
@@ -60,13 +61,15 @@ export function ThemeSwitcher() {
   };
 
   return (
-    <button
+    <Button
       onClick={smartToggle}
-      className="bg-background hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring flex h-9 w-9 items-center justify-center rounded-md border transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+      variant="ghost"
+      size="icon"
+      className="h-8 w-8"
       title={getTooltip()}
       aria-label="Toggle theme"
     >
       {getIcon()}
-    </button>
+    </Button>
   );
 }

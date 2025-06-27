@@ -16,16 +16,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { BranchSelector } from "@/components/chat/branch-selector";
 import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { mutate } from "swr";
+import { useChatUrl } from "@/hooks/use-chat-url";
+import { useConversationBranches } from "@/hooks/use-conversation-branches";
 
 export function HeaderToolsOverlay() {
   const pathname = usePathname();
+  const { chatId } = useChatUrl();
+  const { branches } = useConversationBranches(chatId || "");
 
   // Check if we're in a specific chat
-  const isInChat = pathname.startsWith("/chat/") && pathname !== "/chat";
-  const chatId = isInChat ? pathname.split("/chat/")[1] : null;
+  const isInChat = pathname === "/chat" && !!chatId;
+  const shouldShowBranchSelector = isInChat && branches && branches.length > 1;
 
   const handleSettings = () => {
     // TODO: Implement settings
@@ -51,6 +57,13 @@ export function HeaderToolsOverlay() {
     console.log("Share feedback clicked");
   };
 
+  const handleBranchChange = (branchName: string) => {
+    if (chatId) {
+      // Revalidate messages for the new branch
+      mutate(`messages-${chatId}-${branchName}`);
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -70,6 +83,14 @@ export function HeaderToolsOverlay() {
           <Search className="h-4 w-4" />
           <span className="sr-only">Search</span>
         </Button>
+
+        {/* Branch Selector - only show when in a specific chat with multiple branches */}
+        {shouldShowBranchSelector && chatId && (
+          <BranchSelector
+            conversationId={chatId}
+            onBranchChange={handleBranchChange}
+          />
+        )}
 
         {/* Theme Switcher */}
         <ThemeSwitcher />

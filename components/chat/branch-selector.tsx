@@ -62,16 +62,16 @@ export function BranchSelector({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button 
-            variant="outline" 
-            size="sm" 
-            className={cn("h-8 gap-2 min-w-0", className)}
+            variant="ghost" 
+            size="icon" 
+            className={cn("h-8 w-auto px-2 gap-1.5", className)}
           >
-            <GitBranch className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate text-xs font-medium">{displayName}</span>
-            <Badge variant="secondary" className="ml-1 text-xs px-1.5 py-0">
+            <GitBranch className="h-4 w-4 flex-shrink-0" />
+            <span className="truncate text-sm font-medium">{displayName}</span>
+            <Badge variant="secondary" className="ml-0.5 text-xs px-1 py-0 h-4">
               {currentBranch?.message_count || 0}
             </Badge>
-            <ChevronDown className="h-3 w-3 flex-shrink-0" />
+            <ChevronDown className="h-3.5 w-3.5 flex-shrink-0 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-64">

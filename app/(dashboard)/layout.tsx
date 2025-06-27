@@ -18,7 +18,9 @@ export default function DashboardLayout({
           <SidebarTriggerWithNewChat />
         </Suspense>
 
-        <HeaderToolsOverlay />
+        <Suspense fallback={null}>
+          <HeaderToolsOverlay />
+        </Suspense>
       </SidebarProvider>
     </div>
   );
