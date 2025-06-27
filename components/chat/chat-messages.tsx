@@ -7,6 +7,8 @@ import { ShimmerText } from "@/components/ui/shimmer-text";
 import { ScrollToBottomButton } from "./scroll-to-bottom-button";
 import { useChatScroll } from "@/hooks/use-chat-scroll";
 import { isThinkingModel } from "@/lib/ai";
+import { useAtom } from "jotai";
+import { getActiveBranchAtom } from "@/store/branch";
 import type { Message } from "ai";
 import type { Message as DBMessage } from "@/types";
 
@@ -27,6 +29,12 @@ export function ChatMessages({
   isWaitingForResponse,
   selectedModel,
 }: ChatMessagesProps) {
+  // Get the active branch for this conversation
+  const [activeBranch] = useAtom(getActiveBranchAtom(chatId || ""));
+
+  // Ensure activeBranch is properly typed as string
+  const branchName = typeof activeBranch === "string" ? activeBranch : "main";
+
   const {
     scrollAreaViewportRef,
     messagesEndRef,
@@ -37,6 +45,7 @@ export function ChatMessages({
     messages: displayMessages,
     chatId,
     isStreaming,
+    branchName,
   });
 
   // Show loading indicator when waiting for AI to start responding
@@ -79,15 +88,16 @@ export function ChatMessages({
     <div className="relative h-full">
       <ScrollArea className="h-full w-full" viewportRef={scrollAreaViewportRef}>
         <div className="flex justify-center">
-          <div 
+          <div
             className={`w-full max-w-4xl space-y-4 p-4 pb-32 transition-opacity duration-100 ${
-              isContentVisible ? 'opacity-100' : 'opacity-0'
+              isContentVisible ? "opacity-100" : "opacity-0"
             }`}
           >
             {displayMessages.map((message, index) => {
               // Handle both store messages and useChat messages
               const isDBMessage =
-                "created_at" in message && typeof message.created_at === "string";
+                "created_at" in message &&
+                typeof message.created_at === "string";
 
               // Check for experimental_attachments from useChat hook
               const hasExperimentalAttachments =
@@ -97,6 +107,7 @@ export function ChatMessages({
               return (
                 <MessageComponent
                   key={message.id}
+                  conversationId={chatId || ""}
                   message={{
                     id: message.id,
                     conversation_id: chatId || "",
@@ -128,6 +139,8 @@ export function ChatMessages({
                     index === displayMessages.length - 1 &&
                     message.role === "assistant"
                   }
+                  isDBMessage={isDBMessage}
+                  messageIndex={index}
                 />
               );
             })}
@@ -157,10 +170,10 @@ export function ChatMessages({
           </div>
         </div>
       </ScrollArea>
-      
+
       {/* Scroll to bottom button - positioned above the chat input area */}
-      <ScrollToBottomButton 
-        isVisible={!isNearBottom && displayMessages.length > 0} 
+      <ScrollToBottomButton
+        isVisible={!isNearBottom && displayMessages.length > 0}
         onClick={scrollToBottom}
       />
     </div>

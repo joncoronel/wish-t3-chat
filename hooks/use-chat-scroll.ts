@@ -1,25 +1,35 @@
 "use client";
-
-import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 
 interface UseChatScrollOptions {
   messages: unknown[];
   chatId?: string;
   isStreaming?: boolean;
+  branchName?: string;
 }
 
-
-
-export function useChatScroll({ messages, chatId, isStreaming }: UseChatScrollOptions) {
+export function useChatScroll({
+  messages,
+  chatId,
+  isStreaming,
+  branchName,
+}: UseChatScrollOptions) {
   const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isNearBottom, setIsNearBottom] = useState(true);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isContentVisible, setIsContentVisible] = useState(false);
-  
+
   // Enhanced state tracking
   const lastChatId = useRef<string | undefined>(chatId);
+  const lastBranchName = useRef<string | undefined>(branchName);
   const lastMessageCount = useRef(messages.length);
   const userScrolledUp = useRef(false);
   const isScrollListenerAttached = useRef(false);
@@ -27,8 +37,8 @@ export function useChatScroll({ messages, chatId, isStreaming }: UseChatScrollOp
   const resizeObserver = useRef<ResizeObserver | null>(null);
   const animationFrame = useRef<number | null>(null);
   const isSelecting = useRef(false);
-  
-  // Animation state  
+
+  // Animation state
   const animationState = useRef({
     ignoreScrollEvents: false,
   });
@@ -42,11 +52,11 @@ export function useChatScroll({ messages, chatId, isStreaming }: UseChatScrollOp
     if (!selection || !selection.rangeCount) {
       return false;
     }
-    
+
     const range = selection.getRangeAt(0);
     const viewport = scrollAreaViewportRef.current;
     if (!viewport) return false;
-    
+
     return (
       range.commonAncestorContainer.contains(viewport) ||
       viewport.contains(range.commonAncestorContainer)
@@ -67,24 +77,24 @@ export function useChatScroll({ messages, chatId, isStreaming }: UseChatScrollOp
   const scrollToBottom = useCallback((smooth = true) => {
     const viewport = scrollAreaViewportRef.current;
     const bottomMarker = messagesEndRef.current;
-    
-         if (viewport && bottomMarker) {
-       // Cancel any ongoing custom animations
-       if (animationFrame.current) {
-         cancelAnimationFrame(animationFrame.current);
-       }
+
+    if (viewport && bottomMarker) {
+      // Cancel any ongoing custom animations
+      if (animationFrame.current) {
+        cancelAnimationFrame(animationFrame.current);
+      }
 
       const targetScrollTop = viewport.scrollHeight - viewport.clientHeight;
-      
+
       // Mark this as a programmatic scroll to ignore events
       animationState.current.ignoreScrollEvents = true;
-      
+
       if (smooth) {
-        viewport.scrollTo({ 
-          top: targetScrollTop, 
-          behavior: "smooth" 
+        viewport.scrollTo({
+          top: targetScrollTop,
+          behavior: "smooth",
         });
-        
+
         // Reset the flag after smooth scroll completes
         setTimeout(() => {
           animationState.current.ignoreScrollEvents = false;
@@ -155,7 +165,7 @@ export function useChatScroll({ messages, chatId, isStreaming }: UseChatScrollOp
     if (event.deltaY < 0 && viewport.scrollHeight > viewport.clientHeight) {
       userScrolledUp.current = true;
       setShouldAutoScroll(false);
-      
+
       // Stop any ongoing animation
       if (animationFrame.current) {
         cancelAnimationFrame(animationFrame.current);
@@ -169,37 +179,39 @@ export function useChatScroll({ messages, chatId, isStreaming }: UseChatScrollOp
     if (!messagesEnd) return;
 
     resizeObserver.current?.disconnect();
-    
-         resizeObserver.current = new ResizeObserver(() => {
-       // Content size changed, check if we should auto-scroll
-       if (shouldAutoScroll && !userScrolledUp.current) {
-         // Use a small delay to ensure DOM has updated
-         setTimeout(() => {
-           scrollToBottom(true);
-         }, 0);
-       }
-       
-       // Update bottom detection
-       const nearBottom = checkIfNearBottom();
-       setIsNearBottom(nearBottom);
-     });
+
+    resizeObserver.current = new ResizeObserver(() => {
+      // Content size changed, check if we should auto-scroll
+      if (shouldAutoScroll && !userScrolledUp.current) {
+        // Use a small delay to ensure DOM has updated
+        setTimeout(() => {
+          scrollToBottom(true);
+        }, 0);
+      }
+
+      // Update bottom detection
+      const nearBottom = checkIfNearBottom();
+      setIsNearBottom(nearBottom);
+    });
 
     // Observe the parent container of messagesEnd
     if (messagesEnd.parentElement) {
       resizeObserver.current.observe(messagesEnd.parentElement);
     }
 
-         return () => {
-       resizeObserver.current?.disconnect();
-     };
-   }, [shouldAutoScroll, checkIfNearBottom, scrollToBottom]);
+    return () => {
+      resizeObserver.current?.disconnect();
+    };
+  }, [shouldAutoScroll, checkIfNearBottom, scrollToBottom]);
 
   // Handle chat switching
   useEffect(() => {
-    if (chatId !== lastChatId.current) {
+    const chatChanged = chatId !== lastChatId.current;
+
+    if (chatChanged) {
       // Immediately hide content to prevent flash
       setIsContentVisible(false);
-      
+
       lastChatId.current = chatId;
       setIsInitialLoad(true);
       setShouldAutoScroll(true);
@@ -209,7 +221,7 @@ export function useChatScroll({ messages, chatId, isStreaming }: UseChatScrollOp
       isScrollListenerAttached.current = false;
       lastScrollTop.current = 0;
       isSelecting.current = false;
-      
+
       // Reset animation state
       if (animationFrame.current) {
         cancelAnimationFrame(animationFrame.current);
@@ -220,6 +232,35 @@ export function useChatScroll({ messages, chatId, isStreaming }: UseChatScrollOp
     }
   }, [chatId, messages.length]);
 
+  // Handle branch switching separately (without resetting scroll state)
+  useEffect(() => {
+    const branchChanged = branchName !== lastBranchName.current;
+
+    if (branchChanged) {
+      lastBranchName.current = branchName;
+
+      // For branch changes, we need to check scroll position after content loads
+      // but don't reset the auto-scroll behavior unless the user was actually scrolled up
+      setTimeout(() => {
+        const viewport = scrollAreaViewportRef.current;
+        if (viewport) {
+          const nearBottom = checkIfNearBottom();
+          setIsNearBottom(nearBottom);
+
+          // Only update auto-scroll state if we're not near bottom and weren't already scrolled up
+          if (!nearBottom && !userScrolledUp.current) {
+            userScrolledUp.current = true;
+            setShouldAutoScroll(false);
+          } else if (nearBottom && userScrolledUp.current) {
+            // If we're at bottom after branch change, re-enable auto-scroll
+            userScrolledUp.current = false;
+            setShouldAutoScroll(true);
+          }
+        }
+      }, 100);
+    }
+  }, [branchName, checkIfNearBottom]);
+
   // Initial scroll positioning (runs synchronously before paint)
   useLayoutEffect(() => {
     if (isInitialLoad && messages.length > 0) {
@@ -228,7 +269,7 @@ export function useChatScroll({ messages, chatId, isStreaming }: UseChatScrollOp
         // Set scroll position immediately without animation to prevent flash
         const targetScrollTop = viewport.scrollHeight - viewport.clientHeight;
         viewport.scrollTop = targetScrollTop;
-        
+
         setIsInitialLoad(false);
         // Use a small delay to ensure scroll position is applied before showing content
         requestAnimationFrame(() => {
@@ -259,7 +300,13 @@ export function useChatScroll({ messages, chatId, isStreaming }: UseChatScrollOp
         scrollToBottom(true);
       }, 0);
     }
-  }, [messages, shouldAutoScroll, isInitialLoad, scrollToBottom]);
+  }, [
+    messages,
+    shouldAutoScroll,
+    isInitialLoad,
+    scrollToBottom,
+    checkIfNearBottom,
+  ]);
 
   // Enhanced event listener setup
   useEffect(() => {
@@ -269,7 +316,7 @@ export function useChatScroll({ messages, chatId, isStreaming }: UseChatScrollOp
 
     const setupEventListeners = () => {
       const viewport = scrollAreaViewportRef.current;
-      
+
       if (!viewport) {
         if (retryCount < maxRetries) {
           retryCount++;
@@ -281,12 +328,12 @@ export function useChatScroll({ messages, chatId, isStreaming }: UseChatScrollOp
       if (isScrollListenerAttached.current) {
         return;
       }
-      
+
       // Add enhanced event listeners
       viewport.addEventListener("scroll", handleScroll, { passive: true });
       viewport.addEventListener("wheel", handleWheel, { passive: true });
       isScrollListenerAttached.current = true;
-      
+
       // Initial position check
       setTimeout(() => {
         const nearBottom = checkIfNearBottom();
@@ -295,20 +342,20 @@ export function useChatScroll({ messages, chatId, isStreaming }: UseChatScrollOp
     };
 
     setupEventListeners();
-    
+
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
       if (animationFrame.current) {
         cancelAnimationFrame(animationFrame.current);
       }
-      
+
       const viewport = scrollAreaViewportRef.current;
       if (viewport && isScrollListenerAttached.current) {
         viewport.removeEventListener("scroll", handleScroll);
         viewport.removeEventListener("wheel", handleWheel);
         isScrollListenerAttached.current = false;
       }
-      
+
       resizeObserver.current?.disconnect();
     };
   }, [handleScroll, handleWheel, checkIfNearBottom]);

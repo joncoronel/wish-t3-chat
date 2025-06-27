@@ -22,6 +22,7 @@ const chatRequestSchema = z.object({
   max_tokens: z.number().min(1).max(200000).optional().default(8192),
   conversationId: z.string().optional(),
   personaId: z.string().optional(),
+  branchName: z.string().optional().default("main"),
   apiKeys: z.record(z.string()).optional(), // Client-provided API keys
   attachments: z
     .array(
@@ -54,6 +55,7 @@ export async function POST(req: NextRequest) {
       max_tokens,
       conversationId,
       personaId,
+      branchName,
       apiKeys,
       attachments,
     } = chatRequestSchema.parse(body);
@@ -161,13 +163,28 @@ export async function POST(req: NextRequest) {
         console.error("Error creating conversation:", convError);
         return new Response("Error creating conversation", { status: 500 });
       }
+
+      // Create the main branch for the new conversation
+      const { error: branchError } = await supabase.from("conversation_branches").insert({
+        conversation_id: validConversationId,
+        branch_name: "main",
+        display_name: "Main",
+        is_active: true,
+        message_count: 0,
+      });
+
+      if (branchError) {
+        console.error("Error creating main branch:", branchError);
+        // Don't fail the entire request for this, but log it
+      }
     }
 
-    // Load existing messages from database to maintain context
+    // Load existing messages from database to maintain context (for the specific branch)
     const { data: existingMessages, error: messagesError } = await supabase
       .from("messages")
       .select("role, content")
       .eq("conversation_id", validConversationId)
+      .eq("branch_name", branchName)
       .order("created_at", { ascending: true });
 
     if (messagesError) {
@@ -188,6 +205,7 @@ export async function POST(req: NextRequest) {
           role: "user",
           content: lastMessage.content, // Save original message, not enhanced
           userId: user.id,
+          branchName,
           attachments,
         });
 
@@ -396,6 +414,7 @@ export async function POST(req: NextRequest) {
             role: "assistant",
             content: text,
             userId: user.id,
+            branchName,
             usage,
           });
 
@@ -460,6 +479,7 @@ async function saveMessageToDatabase(
     role,
     content,
     userId,
+    branchName,
     usage,
     attachments,
   }: {
@@ -467,6 +487,7 @@ async function saveMessageToDatabase(
     role: "user" | "assistant";
     content: string;
     userId: string;
+    branchName?: string;
     usage?: Record<string, unknown>;
     attachments?: Array<{
       id: string;
@@ -487,6 +508,7 @@ async function saveMessageToDatabase(
       role,
       content,
       metadata: usage ? { usage } : null,
+      branch_name: branchName || "main",
       attachments: attachments || null,
       created_at: new Date().toISOString(),
     });

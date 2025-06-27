@@ -30,7 +30,7 @@ export default async function ChatServer({ searchParams }: ChatPageProps) {
     const messagesPromise = getMessages(chatId);
 
     const fallbackData: Record<string, unknown> = {
-      [`messages-${chatId}`]: messagesPromise,
+      [`messages-${chatId}-main`]: messagesPromise,
       [`encrypted-api-keys-${user.id}`]: apiKeys,
       [`user-preferences-${user.id}`]: preferences,
       [`conversations-${user.id}`]: conversations,

@@ -51,6 +51,7 @@ export async function getMessages(conversationId: string): Promise<Message[]> {
     .from("messages")
     .select("*")
     .eq("conversation_id", conversationId)
+    .eq("branch_name", "main")
     .order("created_at", { ascending: true });
 
   if (error) {

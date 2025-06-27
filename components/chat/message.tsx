@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -11,11 +11,13 @@ import {
   Image,
   FileIcon,
   Download,
+  GitBranch,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Message, ChatAttachment } from "@/types";
 import { cn } from "@/lib/utils";
 import { AIResponse } from "@/components/chat/ai-response";
+import { CreateBranchDialog } from "./create-branch-dialog";
 
 // Type for messages from useChat hook
 interface UseChatMessage {
@@ -183,21 +185,28 @@ function CompactFileAttachment({ attachment }: { attachment: ChatAttachment }) {
 
 interface MessageComponentProps {
   message: Message | UseChatMessage;
+  conversationId: string;
   isStreaming?: boolean;
   onEdit?: (messageId: string) => void;
   onDelete?: (messageId: string) => void;
   className?: string;
+  isDBMessage?: boolean;
+  messageIndex?: number; // Position of this message in the conversation
 }
 
 export const MessageComponent = memo(function MessageComponent({
   message,
+  conversationId,
   isStreaming = false,
   onEdit,
   onDelete,
   className,
+  isDBMessage = true,
+  messageIndex,
 }: MessageComponentProps) {
   const isSystem = message.role === "system";
   const isAssistant = message.role === "assistant";
+  const [showCreateBranchDialog, setShowCreateBranchDialog] = useState(false);
 
   // Convert raw database attachments to ChatAttachment format
   const convertAttachments = (
@@ -277,6 +286,17 @@ export const MessageComponent = memo(function MessageComponent({
                 Copy
               </Button>
 
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => setShowCreateBranchDialog(true)}
+                title="Create branch from this message"
+              >
+                <GitBranch className="mr-1 h-3 w-3" />
+                Branch
+              </Button>
+
               {onDelete && (
                 <Button
                   variant="ghost"
@@ -292,6 +312,15 @@ export const MessageComponent = memo(function MessageComponent({
             </div>
           </div>
         </div>
+        
+        {/* Branch dialog for AI messages */}
+        <CreateBranchDialog
+          conversationId={conversationId}
+          open={showCreateBranchDialog}
+          onOpenChange={setShowCreateBranchDialog}
+          fromMessageId={isDBMessage ? message.id : undefined}
+          messageIndex={messageIndex}
+        />
       </div>
     );
   }
@@ -364,6 +393,17 @@ export const MessageComponent = memo(function MessageComponent({
               Copy
             </Button>
 
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={() => setShowCreateBranchDialog(true)}
+              title="Create branch from this message"
+            >
+              <GitBranch className="mr-1 h-3 w-3" />
+              Branch
+            </Button>
+
             {onEdit && (
               <Button
                 variant="ghost"
@@ -401,6 +441,15 @@ export const MessageComponent = memo(function MessageComponent({
           </div>
         </div>
       </div>
+
+      {/* Branch dialog for user messages */}
+      <CreateBranchDialog
+        conversationId={conversationId}
+        open={showCreateBranchDialog}
+        onOpenChange={setShowCreateBranchDialog}
+        fromMessageId={isDBMessage ? message.id : undefined}
+        messageIndex={messageIndex}
+      />
     </div>
   );
 });

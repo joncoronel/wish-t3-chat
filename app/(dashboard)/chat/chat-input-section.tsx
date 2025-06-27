@@ -1,9 +1,9 @@
 import { getUser } from "@/lib/auth";
-import { ChatInputWrapper } from "@/components/chat/chat-input-wrapper";
 import { redirect } from "next/navigation";
 import { getConversations } from "@/lib/data/conversations";
 import { getUserSettingsData } from "@/lib/data/user-preferences";
 import { SWRConfig } from "swr";
+import { ChatInputSectionClient } from "@/components/chat/chat-input-section-client";
 
 export async function ChatInputSection() {
   const user = await getUser();
@@ -25,7 +25,7 @@ export async function ChatInputSection() {
         },
       }}
     >
-      <ChatInputWrapper userId={user.id} />
+      <ChatInputSectionClient userId={user.id} />
     </SWRConfig>
   );
 }

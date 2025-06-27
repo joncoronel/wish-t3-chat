@@ -106,6 +106,7 @@ export interface Database {
           metadata: Record<string, unknown> | null;
           parent_id: string | null;
           is_active: boolean;
+          branch_name: string;
           attachments: Array<Record<string, unknown>> | null;
           created_at: string;
         };
@@ -117,6 +118,7 @@ export interface Database {
           metadata?: Record<string, unknown> | null;
           parent_id?: string | null;
           is_active?: boolean;
+          branch_name?: string;
           attachments?: Array<Record<string, unknown>> | null;
           created_at?: string;
         };
@@ -128,6 +130,7 @@ export interface Database {
           metadata?: Record<string, unknown> | null;
           parent_id?: string | null;
           is_active?: boolean;
+          branch_name?: string;
           attachments?: Array<Record<string, unknown>> | null;
           created_at?: string;
         };
@@ -311,6 +314,44 @@ export interface Database {
           conversation_id?: string;
           summary?: string;
           key_points?: Array<string>;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      conversation_branches: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          branch_name: string;
+          display_name: string;
+          description: string | null;
+          created_from_message_id: string | null;
+          is_active: boolean;
+          message_count: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          branch_name: string;
+          display_name: string;
+          description?: string | null;
+          created_from_message_id?: string | null;
+          is_active?: boolean;
+          message_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          conversation_id?: string;
+          branch_name?: string;
+          display_name?: string;
+          description?: string | null;
+          created_from_message_id?: string | null;
+          is_active?: boolean;
+          message_count?: number;
           created_at?: string;
           updated_at?: string;
         };

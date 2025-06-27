@@ -17,6 +17,7 @@ export type Folder = Tables<"folders">;
 export type SharedConversation = Tables<"shared_conversations">;
 export type Attachment = Tables<"attachments">;
 export type ApiUsage = Tables<"api_usage">;
+export type ConversationBranch = Tables<"conversation_branches">;
 
 // Auth types
 export interface AuthUser {
@@ -60,6 +61,25 @@ export interface ChatMessage {
   attachments?: ChatAttachment[];
   parent_id?: string;
   children?: string[];
+  branch_name?: string;
+}
+
+// Branch-related types
+export interface ConversationTree {
+  conversationId: string;
+  branches: BranchNode[];
+  activeBranch: string;
+}
+
+export interface BranchNode {
+  branchName: string;
+  displayName: string;
+  description?: string;
+  messageCount: number;
+  isActive: boolean;
+  createdFromMessageId?: string;
+  messages: ChatMessage[];
+  children: BranchNode[];
 }
 
 export interface ChatAttachment {

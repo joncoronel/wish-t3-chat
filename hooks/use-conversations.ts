@@ -35,13 +35,17 @@ async function fetchConversation(
   return data;
 }
 
-async function fetchMessages(conversationId: string): Promise<Message[]> {
+async function fetchMessages(
+  conversationId: string,
+  branchName: string = "main",
+): Promise<Message[]> {
   const supabase = createClient();
 
   const { data, error } = await supabase
     .from("messages")
     .select("*")
     .eq("conversation_id", conversationId)
+    .eq("branch_name", branchName)
     .order("created_at", { ascending: true });
 
   if (error) throw error;
@@ -159,7 +163,8 @@ export async function deleteConversation(
     mutate(`conversation-${conversationId}-${userId}`, null, {
       revalidate: false,
     });
-    mutate(`messages-${conversationId}`, [], { revalidate: false });
+    // Clear main branch messages cache (most common case)
+    mutate(`messages-${conversationId}-main`, [], { revalidate: false });
   } catch (error) {
     console.error("Delete failed:", error);
     throw error;
@@ -187,7 +192,6 @@ export function useConversation(conversationId: string, userId: string) {
       : null,
     () => fetchConversation(conversationId, userId),
     {
-      revalidateOnMount: undefined, // Let SWR decide based on cache state
       revalidateOnFocus: false,
       revalidateIfStale: false, // Only fetch if no cached data exists
       // revalidateOnReconnect: false,
@@ -196,12 +200,14 @@ export function useConversation(conversationId: string, userId: string) {
   );
 }
 
-export function useMessages(conversationId: string) {
+export function useMessages(
+  conversationId: string,
+  branchName: string = "main",
+) {
   return useSWR(
-    conversationId ? `messages-${conversationId}` : null,
-    () => fetchMessages(conversationId),
+    conversationId ? `messages-${conversationId}-${branchName}` : null,
+    () => fetchMessages(conversationId, branchName),
     {
-      revalidateOnMount: undefined, // Let SWR decide based on cache state
       revalidateOnFocus: false,
       revalidateIfStale: false, // Only fetch if no cached data exists
       // revalidateOnReconnect: false,

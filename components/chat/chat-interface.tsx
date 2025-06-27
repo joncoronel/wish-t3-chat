@@ -4,6 +4,9 @@ import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { useChat } from "ai/react";
 
 import { useMessages, useConversations } from "@/hooks/use-conversations";
+import { useAtom } from "jotai";
+import { getActiveBranchAtom } from "@/store/branch";
+import { useConversationBranches } from "@/hooks/use-conversation-branches";
 import { useChatUrl } from "@/hooks/use-chat-url";
 import { useChatLoading } from "@/hooks/use-chat-loading";
 import { useGlobalModel } from "@/hooks/use-global-model";
@@ -86,8 +89,19 @@ export function ChatInterface({
   // Current conversation ID for this chat session
   const currentConversationId = chatId || activeConversationId;
 
+  // Get the active branch for this conversation
+  const [activeBranch] = useAtom(
+    getActiveBranchAtom(currentConversationId || ""),
+  );
+
+  // Ensure activeBranch is always a string
+  const branchName = typeof activeBranch === "string" ? activeBranch : "main";
+
   // Create a stable key for the useChat hook to ensure proper isolation
-  const chatKey = currentConversationId || "new-chat";
+  // Include the branch name so useChat reinitializes when switching branches
+  const chatKey = currentConversationId
+    ? `${currentConversationId}-${branchName}`
+    : "new-chat";
 
   // Welcome screen categories and prompts
   const categoryPrompts = {
@@ -124,10 +138,25 @@ export function ChatInterface({
   } as const;
 
   // Use SWR to get conversation and messages (only when we have a chatId)
-
+  // Pass the active branch to filter messages correctly
   const { data: messages = [], isLoading: isLoadingMessages } = useMessages(
     chatId || "",
+    branchName,
   );
+  
+  // Prefetch messages for all branches to make switching instant
+  const { branches } = useConversationBranches(chatId || "");
+  useEffect(() => {
+    if (branches && branches.length > 1 && chatId) {
+      // Trigger SWR to prefetch messages for all branches
+      branches.forEach(branch => {
+        if (branch.branch_name !== branchName) {
+          // This will trigger the useMessages hook internally to cache the data
+          mutate(`messages-${chatId}-${branch.branch_name}`);
+        }
+      });
+    }
+  }, [branches, chatId, branchName]);
 
   // Get all conversations for welcome screen optimistic updates
   const { data: allConversations = [], isLoading: isLoadingConversations } =
@@ -165,6 +194,7 @@ export function ChatInterface({
       temperature: 0.7,
       max_tokens: maxTokens,
       conversationId: currentConversationId,
+      branchName: branchName,
       apiKeys: stableApiKeys,
     },
 
@@ -175,7 +205,7 @@ export function ChatInterface({
 
         // Only revalidate messages when AI response is complete
         // Don't revalidate conversations - our optimistic update should be enough
-        mutate(`messages-${currentConversationId}`);
+        mutate(`messages-${currentConversationId}-${branchName}`);
       }
     },
     onError: (error) => {
@@ -276,7 +306,7 @@ export function ChatInterface({
           mutate(
             `conversations-${userId}`,
             [optimisticConversation, ...allConversations],
-            false, // Don't revalidate immediately
+            { revalidate: false }, // Don't revalidate immediately
           );
 
           // Navigate to the new conversation
@@ -364,7 +394,12 @@ export function ChatInterface({
           // Try to parse as JSON (new format with attachments)
           const parsed = JSON.parse(pendingData);
           setTimeout(() => {
-            handleSendMessage(parsed.message, parsed.attachments, true, parsed.personaId);
+            handleSendMessage(
+              parsed.message,
+              parsed.attachments,
+              true,
+              parsed.personaId,
+            );
           }, 100);
         } catch {
           // Fallback to old format (just string message)
@@ -377,7 +412,12 @@ export function ChatInterface({
 
     // Listen for messages from ChatInputWrapper for existing chats
     const handleChatMessage = (event: CustomEvent) => {
-      const { chatId: eventChatId, message, attachments, personaId } = event.detail;
+      const {
+        chatId: eventChatId,
+        message,
+        attachments,
+        personaId,
+      } = event.detail;
       if (eventChatId === chatId) {
         handleSendMessage(message, attachments, false, personaId);
       }
