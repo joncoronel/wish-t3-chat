@@ -126,7 +126,7 @@ export async function POST(
     return Response.json({
       is_shared: is_public,
       share_token: is_public ? shareToken : null,
-      share_url: is_public ? `${process.env.NEXT_PUBLIC_APP_URL || req.headers.get('origin') || 'http://localhost:3000'}/share/${shareToken}` : null,
+      share_url: is_public ? `${process.env.NEXT_PUBLIC_SITE_URL || req.headers.get('origin') || 'http://localhost:3000'}/share/${shareToken}` : null,
     });
   } catch (error) {
     console.error("Share POST error:", error);
@@ -180,7 +180,7 @@ export async function GET(
         shared_branches: sharedBranches.map(branch => ({
           branch_name: branch.branch_name,
           share_token: branch.share_token,
-          share_url: `${process.env.NEXT_PUBLIC_APP_URL || req.headers.get('origin') || 'http://localhost:3000'}/share/${branch.share_token}`,
+          share_url: `${process.env.NEXT_PUBLIC_SITE_URL || req.headers.get('origin') || 'http://localhost:3000'}/share/${branch.share_token}`,
           expires_at: branch.expires_at,
           view_count: branch.view_count,
         })),
