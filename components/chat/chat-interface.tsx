@@ -206,6 +206,9 @@ export function ChatInterface({
         // Only revalidate messages when AI response is complete
         // Don't revalidate conversations - our optimistic update should be enough
         mutate(`messages-${currentConversationId}-${branchName}`);
+        
+        // Invalidate branches cache to ensure new conversations show their main branch
+        mutate(`branches-${currentConversationId}`);
       }
     },
     onError: (error) => {

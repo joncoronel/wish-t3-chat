@@ -135,6 +135,18 @@ export async function deleteConversation(
 
   // Delete function for the actual database operation
   const deleteFunction = async () => {
+    // First, delete any shared conversation entries
+    const { error: shareError } = await supabase
+      .from("shared_conversations")
+      .delete()
+      .eq("conversation_id", conversationId);
+
+    if (shareError) {
+      console.error("Error deleting shared conversation entry:", shareError);
+      // Don't throw here - the share entry might not exist
+    }
+
+    // Then delete the conversation itself
     const { error } = await supabase
       .from("conversations")
       .delete()
@@ -176,6 +188,27 @@ export async function deleteAllConversations(userId: string): Promise<void> {
 
   // Delete function for the actual database operation
   const deleteFunction = async () => {
+    // First, get all conversation IDs for this user to delete their shared entries
+    const { data: conversations } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("user_id", userId);
+
+    if (conversations && conversations.length > 0) {
+      // Delete all shared conversation entries for this user's conversations
+      const conversationIds = conversations.map(c => c.id);
+      const { error: shareError } = await supabase
+        .from("shared_conversations")
+        .delete()
+        .in("conversation_id", conversationIds);
+
+      if (shareError) {
+        console.error("Error deleting shared conversation entries:", shareError);
+        // Don't throw here - shared entries might not exist
+      }
+    }
+
+    // Then delete all conversations
     const { error } = await supabase
       .from("conversations")
       .delete()

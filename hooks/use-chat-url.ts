@@ -5,7 +5,6 @@ import { useCallback } from "react";
 
 export function useChatUrl() {
   const [chatId, setChatId] = useQueryState("id", {
-    defaultValue: "",
     shallow: true,
     history: "push",
   });
@@ -26,7 +25,7 @@ export function useChatUrl() {
   }, [setChatId]);
 
   return {
-    chatId: chatId || null,
+    chatId,
     setChatId,
     navigateToChat,
     navigateToNewChat,

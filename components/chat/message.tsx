@@ -192,6 +192,7 @@ interface MessageComponentProps {
   className?: string;
   isDBMessage?: boolean;
   messageIndex?: number; // Position of this message in the conversation
+  readOnly?: boolean; // Hide interactive elements for shared/public views
 }
 
 export const MessageComponent = memo(function MessageComponent({
@@ -203,6 +204,7 @@ export const MessageComponent = memo(function MessageComponent({
   className,
   isDBMessage = true,
   messageIndex,
+  readOnly = false,
 }: MessageComponentProps) {
   const isSystem = message.role === "system";
   const isAssistant = message.role === "assistant";
@@ -286,16 +288,18 @@ export const MessageComponent = memo(function MessageComponent({
                 Copy
               </Button>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 px-2 text-xs"
-                onClick={() => setShowCreateBranchDialog(true)}
-                title="Create branch from this message"
-              >
-                <GitBranch className="mr-1 h-3 w-3" />
-                Branch
-              </Button>
+              {!readOnly && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={() => setShowCreateBranchDialog(true)}
+                  title="Create branch from this message"
+                >
+                  <GitBranch className="mr-1 h-3 w-3" />
+                  Branch
+                </Button>
+              )}
 
               {onDelete && (
                 <Button
@@ -314,13 +318,15 @@ export const MessageComponent = memo(function MessageComponent({
         </div>
         
         {/* Branch dialog for AI messages */}
-        <CreateBranchDialog
-          conversationId={conversationId}
-          open={showCreateBranchDialog}
-          onOpenChange={setShowCreateBranchDialog}
-          fromMessageId={isDBMessage ? message.id : undefined}
-          messageIndex={messageIndex}
-        />
+        {!readOnly && (
+          <CreateBranchDialog
+            conversationId={conversationId}
+            open={showCreateBranchDialog}
+            onOpenChange={setShowCreateBranchDialog}
+            fromMessageId={isDBMessage ? message.id : undefined}
+            messageIndex={messageIndex}
+          />
+        )}
       </div>
     );
   }
@@ -393,16 +399,18 @@ export const MessageComponent = memo(function MessageComponent({
               Copy
             </Button>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-xs"
-              onClick={() => setShowCreateBranchDialog(true)}
-              title="Create branch from this message"
-            >
-              <GitBranch className="mr-1 h-3 w-3" />
-              Branch
-            </Button>
+            {!readOnly && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => setShowCreateBranchDialog(true)}
+                title="Create branch from this message"
+              >
+                <GitBranch className="mr-1 h-3 w-3" />
+                Branch
+              </Button>
+            )}
 
             {onEdit && (
               <Button
@@ -443,13 +451,15 @@ export const MessageComponent = memo(function MessageComponent({
       </div>
 
       {/* Branch dialog for user messages */}
-      <CreateBranchDialog
-        conversationId={conversationId}
-        open={showCreateBranchDialog}
-        onOpenChange={setShowCreateBranchDialog}
-        fromMessageId={isDBMessage ? message.id : undefined}
-        messageIndex={messageIndex}
-      />
+      {!readOnly && (
+        <CreateBranchDialog
+          conversationId={conversationId}
+          open={showCreateBranchDialog}
+          onOpenChange={setShowCreateBranchDialog}
+          fromMessageId={isDBMessage ? message.id : undefined}
+          messageIndex={messageIndex}
+        />
+      )}
     </div>
   );
 });

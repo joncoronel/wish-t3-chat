@@ -37,16 +37,32 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const publicRoutes = ["/login", "/signup",];
+  const publicRoutes = ["/login", "/signup", "/share"];
   const authRoutes = ["/chat", "/settings"];
 
-  if (!user && authRoutes.some((route) => request.nextUrl.pathname.startsWith(route))) {
+  // Allow public access to share routes
+  if (
+    publicRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
+  ) {
+    return supabaseResponse;
+  }
+
+  if (
+    !user &&
+    authRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  if (user && publicRoutes.some((route) => request.nextUrl.pathname.startsWith(route))) {
+  // Don't redirect from login/signup if user is logged in, but allow share routes
+  if (
+    user &&
+    ["/login", "/signup"].some((route) =>
+      request.nextUrl.pathname.startsWith(route),
+    )
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/chat";
     return NextResponse.redirect(url);

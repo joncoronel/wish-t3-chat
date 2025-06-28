@@ -163,6 +163,7 @@ export interface Database {
           id: string;
           conversation_id: string;
           share_token: string;
+          branch_name: string;
           expires_at: string | null;
           view_count: number;
           created_at: string;
@@ -171,6 +172,7 @@ export interface Database {
           id?: string;
           conversation_id: string;
           share_token: string;
+          branch_name?: string;
           expires_at?: string | null;
           view_count?: number;
           created_at?: string;
@@ -179,6 +181,7 @@ export interface Database {
           id?: string;
           conversation_id?: string;
           share_token?: string;
+          branch_name?: string;
           expires_at?: string | null;
           view_count?: number;
           created_at?: string;

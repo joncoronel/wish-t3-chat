@@ -11,13 +11,14 @@ interface ChatPageClientProps {
 export function ChatPageClient({ userId, initialChatId }: ChatPageClientProps) {
   const { chatId } = useChatUrl();
 
-  // Use URL state if available, otherwise fall back to initial
-  const activeChatId = chatId || initialChatId;
+  // Use URL state if it has been set (including empty string for new chat)
+  // Only fall back to initialChatId if URL parameter was never set (null)
+  const activeChatId = chatId !== null ? chatId || undefined : initialChatId;
 
   return (
     <ChatInterface
       key={activeChatId || `new-chat-${userId}`}
-      chatId={activeChatId || undefined}
+      chatId={activeChatId}
       userId={userId}
       className="h-full"
     />

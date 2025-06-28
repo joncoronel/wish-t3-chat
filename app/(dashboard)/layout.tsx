@@ -1,9 +1,10 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 import { DashboardContent } from "./dashboard-content";
-import { HeaderToolsOverlay } from "@/components/layout/header-tools-overlay";
 import { SidebarTriggerWithNewChat } from "@/components/layout/sidebar-trigger-with-new-chat";
+
 import { Suspense } from "react";
+import HeaderToolsOverlayWrapper from "@/components/layout/header-tools-overlay-wrapper";
 
 export default function DashboardLayout({
   children,
@@ -19,7 +20,7 @@ export default function DashboardLayout({
         </Suspense>
 
         <Suspense fallback={null}>
-          <HeaderToolsOverlay />
+          <HeaderToolsOverlayWrapper />
         </Suspense>
       </SidebarProvider>
     </div>
