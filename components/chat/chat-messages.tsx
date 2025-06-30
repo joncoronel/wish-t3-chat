@@ -104,6 +104,9 @@ export function ChatMessages({
                 "experimental_attachments" in message &&
                 message.experimental_attachments;
 
+              // Check for createdAt from useChat messages
+              const hasCreatedAt = "createdAt" in message && message.createdAt;
+
               return (
                 <MessageComponent
                   key={message.id}
@@ -115,6 +118,13 @@ export function ChatMessages({
                     content: message.content,
                     created_at: isDBMessage
                       ? (message as DBMessage).created_at
+                      : hasCreatedAt
+                      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (message as any).createdAt instanceof Date
+                        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          (message as any).createdAt.toISOString()
+                        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          (message as any).createdAt
                       : new Date().toISOString(),
                     metadata: isDBMessage
                       ? (message as DBMessage).metadata

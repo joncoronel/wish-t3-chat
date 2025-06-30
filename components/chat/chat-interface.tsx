@@ -188,6 +188,7 @@ export function ChatInterface({
       role: msg.role as "user" | "assistant" | "system",
       content: msg.content,
       experimental_attachments: convertDbAttachmentsToChat(msg.attachments),
+      createdAt: msg.created_at ? new Date(msg.created_at) : undefined,
     })),
     body: {
       model: selectedModel,
