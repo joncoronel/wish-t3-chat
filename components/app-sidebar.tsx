@@ -414,13 +414,13 @@ export function AppSidebar({ userId, user }: AppSidebarProps) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/settings">
+                <Link href="/settings/general">
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/personas">
+                <Link href="/settings/personas">
                   <Users className="mr-2 h-4 w-4" />
                   AI Personas
                 </Link>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { usePersonas } from "@/hooks/use-personas";
 import { Persona } from "@/types/persona";
 import { Button } from "@/components/ui/button";
@@ -145,14 +146,13 @@ export function PersonaSelector({
             <Button
               variant="ghost"
               className="w-full justify-start"
-              onClick={() => {
-                setOpen(false);
-                // Navigate to personas page
-                window.location.href = "/personas";
-              }}
+              onClick={() => setOpen(false)}
+              asChild
             >
-              <Plus className="mr-2 h-4 w-4" />
-              Manage Personas
+              <Link href="/settings/personas">
+                <Plus className="mr-2 h-4 w-4" />
+                Manage Personas
+              </Link>
             </Button>
           </div>
         </div>
