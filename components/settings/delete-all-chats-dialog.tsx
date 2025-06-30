@@ -13,7 +13,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, AlertTriangle, MessageSquare, Paperclip } from "lucide-react";
 import { deleteAllConversations } from "@/hooks/use-conversations";
 import { toast } from "sonner";
 import { useChatUrl } from "@/hooks/use-chat-url";
@@ -79,36 +79,66 @@ export function DeleteAllChatsDialog({
           Delete All Chats
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete All Conversations</AlertDialogTitle>
-          <AlertDialogDescription>
-            Are you sure you want to delete all {totalChats} conversation{totalChats !== 1 ? 's' : ''}? 
-            This action cannot be undone and will permanently remove all your conversations, 
-            messages, and attachments.
-          </AlertDialogDescription>
+      <AlertDialogContent className="w-[calc(100%-2rem)] max-w-[425px]">
+        <AlertDialogHeader className="space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+            </div>
+            <div className="space-y-1">
+              <AlertDialogTitle>Delete All Conversations</AlertDialogTitle>
+              <AlertDialogDescription>
+                Permanently delete {totalChats} conversation{totalChats !== 1 ? 's' : ''}? This cannot be undone.
+              </AlertDialogDescription>
+            </div>
+          </div>
         </AlertDialogHeader>
-        <div className="space-y-4">
-          <p className="text-sm font-semibold text-destructive">
-            This is a destructive action that will delete ALL your chat history.
-          </p>
-          <div className="space-y-2">
-            <label htmlFor="confirm" className="text-sm font-medium">
-              Type <span className="font-mono font-bold">DELETE ALL</span> to confirm:
+
+        <div className="mt-4 space-y-4">
+          <div className="rounded-md bg-destructive/5 p-3 text-sm">
+            <p className="font-medium text-destructive mb-1">This will delete:</p>
+            <ul className="space-y-1 text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <span className="text-destructive">•</span>
+                All conversations and messages
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-destructive">•</span>
+                All file attachments
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-destructive">•</span>
+                Complete chat history
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-2.5">
+            <label htmlFor="confirm" className="text-sm font-medium block">
+              Type <code className="rounded bg-muted px-1 py-0.5 text-xs">DELETE ALL</code> to confirm
             </label>
             <input
               id="confirm"
               type="text"
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
-              placeholder="Type DELETE ALL"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="DELETE ALL"
+              className={cn(
+                "flex h-9 w-full rounded-md border bg-muted/30 px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50",
+                isConfirmValid 
+                  ? "border-destructive ring-destructive text-destructive" 
+                  : "border-border focus-visible:border-ring focus-visible:ring-ring"
+              )}
               disabled={isDeleting}
+              autoComplete="off"
             />
           </div>
         </div>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+
+        <AlertDialogFooter className="mt-6">
+          <AlertDialogCancel disabled={isDeleting}>
+            Cancel
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDelete}
             disabled={isDeleting || !isConfirmValid}

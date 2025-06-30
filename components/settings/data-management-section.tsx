@@ -24,19 +24,17 @@ export function DataManagementSection({ userId }: DataManagementSectionProps) {
       <CardContent className="space-y-4">
         <div className="rounded-lg border p-4">
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium">Chat History</h3>
-                <p className="text-sm text-muted-foreground">
-                  {isLoading ? (
-                    <Skeleton className="h-4 w-24" />
-                  ) : (
-                    <>
-                      You have {conversationCount} conversation{conversationCount !== 1 ? 's' : ''} in your history.
-                    </>
-                  )}
-                </p>
-              </div>
+            <div>
+              <h3 className="font-medium">Chat History</h3>
+              <p className="text-sm text-muted-foreground">
+                {isLoading ? (
+                  <Skeleton className="h-4 w-24" />
+                ) : (
+                  <>
+                    You have {conversationCount} conversation{conversationCount !== 1 ? 's' : ''} in your history.
+                  </>
+                )}
+              </p>
             </div>
             <div className="pt-2">
               {isLoading ? (

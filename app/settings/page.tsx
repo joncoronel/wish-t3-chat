@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 export const experimental_ppr = true;
 
@@ -17,19 +18,21 @@ export default async function SettingsPage() {
       {/* Header */}
       <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 border-b backdrop-blur">
         <div className="container mx-auto max-w-4xl px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild>
+          <div className="flex items-start gap-4">
+            <Button variant="ghost" size="sm" className="shrink-0" asChild>
               <Link href="/chat" className="flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" />
-                Back to Chat
+                <span className="hidden sm:inline">Back to Chat</span>
+                <span className="sm:hidden">Back</span>
               </Link>
             </Button>
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold">Settings</h1>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl font-bold sm:text-2xl">Settings</h1>
               <p className="text-muted-foreground text-sm">
                 Manage your API keys, preferences, and account settings.
               </p>
             </div>
+            <ThemeSwitcher />
           </div>
         </div>
       </div>
@@ -40,8 +43,8 @@ export default async function SettingsPage() {
           {/* API Keys Section */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 flex-1">
                   <CardTitle>API Keys</CardTitle>
                   <p className="text-muted-foreground mt-1 text-sm">
                     Configure your own API keys to use with different AI
@@ -49,7 +52,7 @@ export default async function SettingsPage() {
                     usage.
                   </p>
                 </div>
-                <Badge variant="secondary">Bring Your Own Key</Badge>
+                <Badge variant="secondary" className="shrink-0 self-start">Bring Your Own Key</Badge>
               </div>
             </CardHeader>
             <CardContent>

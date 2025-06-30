@@ -239,7 +239,7 @@ export function SettingsForm({ userId }: SettingsFormProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             {/* Encrypted Database Storage */}
             <div
               className={`rounded-lg border p-4 transition-all ${
@@ -262,7 +262,7 @@ export function SettingsForm({ userId }: SettingsFormProps) {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-sm break-words">
                       Keys are encrypted client-side and stored in the database.
                       Works across all devices.
                     </p>
@@ -322,7 +322,7 @@ export function SettingsForm({ userId }: SettingsFormProps) {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-sm break-words">
                       Keys are stored only in your browser&apos;s local storage.
                       Device-specific.
                     </p>
@@ -403,16 +403,16 @@ export function SettingsForm({ userId }: SettingsFormProps) {
         return (
           <Card key={provider} className="overflow-hidden">
             <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center">
                     <info.icon className="h-6 w-6" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <CardTitle className="flex items-center gap-2">
                       {info.name}
                       {hasSavedKey && (
-                        <Badge variant="secondary">
+                        <Badge variant="secondary" className="shrink-0">
                           <Key className="mr-1 h-3 w-3" />
                           Configured
                         </Badge>
@@ -420,7 +420,7 @@ export function SettingsForm({ userId }: SettingsFormProps) {
                     </CardTitle>
                   </div>
                 </div>
-                <Button variant="secondary" size="sm" asChild>
+                <Button variant="secondary" size="sm" className="shrink-0" asChild>
                   <a
                     href={info.getKeyUrl}
                     target="_blank"
@@ -441,17 +441,17 @@ export function SettingsForm({ userId }: SettingsFormProps) {
                   }
                   value={localKeyState.value}
                   onChange={(e) => updateLocalApiKey(provider, e.target.value)}
-                  className="pr-20"
+                  className="pr-[4.5rem]"
                   disabled={
                     apiKeyStorageMode === "encrypted" && !isEncryptionAvailable
                   }
                 />
-                <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
+                <div className="absolute top-1/2 right-1 flex -translate-y-1/2 items-center">
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-8 w-8 p-0 shrink-0"
                     onClick={() => toggleVisibility(provider)}
                     disabled={
                       apiKeyStorageMode === "encrypted" &&
@@ -469,7 +469,7 @@ export function SettingsForm({ userId }: SettingsFormProps) {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="text-destructive h-8 w-8 p-0"
+                      className="text-destructive h-8 w-8 p-0 shrink-0"
                       onClick={() => removeApiKey(provider)}
                       disabled={
                         loading ||
