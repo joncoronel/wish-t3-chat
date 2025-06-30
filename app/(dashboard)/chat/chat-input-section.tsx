@@ -12,15 +12,19 @@ export async function ChatInputSection() {
     redirect("/login");
   }
 
-  const conversations = await getConversations(user.id);
-  const { apiKeys, preferences } = await getUserSettingsData(user.id);
+  const conversations = getConversations(user.id);
+  const userSettingsPromise = getUserSettingsData(user.id);
 
   return (
     <SWRConfig
       value={{
         fallback: {
-          [`encrypted-api-keys-${user.id}`]: apiKeys,
-          [`user-preferences-${user.id}`]: preferences,
+          [`encrypted-api-keys-${user.id}`]: userSettingsPromise.then(
+            (data) => data.apiKeys,
+          ),
+          [`user-preferences-${user.id}`]: userSettingsPromise.then(
+            (data) => data.preferences,
+          ),
           [`conversations-${user.id}`]: conversations,
         },
       }}

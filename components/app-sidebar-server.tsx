@@ -11,7 +11,7 @@ export default async function AppSidebarServer() {
     return null;
   }
 
-  const conversations = await getConversations(userId);
+  const conversations = getConversations(userId);
 
   return (
     <SWRConfig

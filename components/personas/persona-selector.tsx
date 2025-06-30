@@ -20,14 +20,18 @@ interface PersonaSelectorProps {
   className?: string;
 }
 
-export function PersonaSelector({ selectedPersona, onSelect, className }: PersonaSelectorProps) {
+export function PersonaSelector({
+  selectedPersona,
+  onSelect,
+  className,
+}: PersonaSelectorProps) {
   const { personas, isLoading } = usePersonas();
   const [open, setOpen] = useState(false);
 
   const getInitials = (name: string) => {
     return name
       .split(" ")
-      .map(word => word[0])
+      .map((word) => word[0])
       .join("")
       .toUpperCase()
       .slice(0, 2);
@@ -66,8 +70,8 @@ export function PersonaSelector({ selectedPersona, onSelect, className }: Person
           {/* Default option - no persona */}
           <div
             className={cn(
-              "flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-accent",
-              !selectedPersona && "bg-accent"
+              "hover:bg-accent flex cursor-pointer items-center gap-3 px-3 py-2",
+              !selectedPersona && "bg-accent",
             )}
             onClick={() => {
               onSelect(null);
@@ -76,7 +80,7 @@ export function PersonaSelector({ selectedPersona, onSelect, className }: Person
           >
             <div className="flex-1">
               <div className="font-medium">Default AI</div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-muted-foreground text-xs">
                 Use the standard AI without a specific persona
               </div>
             </div>
@@ -85,8 +89,8 @@ export function PersonaSelector({ selectedPersona, onSelect, className }: Person
 
           {personas.length > 0 && (
             <>
-              <div className="border-t my-1" />
-              <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground">
+              <div className="my-1 border-t" />
+              <div className="text-muted-foreground px-3 py-1.5 text-xs font-medium">
                 Your Personas
               </div>
             </>
@@ -94,15 +98,15 @@ export function PersonaSelector({ selectedPersona, onSelect, className }: Person
 
           {isLoading ? (
             <div className="flex items-center justify-center py-4">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+              <div className="border-primary h-5 w-5 animate-spin rounded-full border-b-2"></div>
             </div>
           ) : (
             personas.map((persona) => (
               <div
                 key={persona.id}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-accent",
-                  selectedPersona?.id === persona.id && "bg-accent"
+                  "hover:bg-accent flex cursor-pointer items-center gap-3 px-3 py-2",
+                  selectedPersona?.id === persona.id && "bg-accent",
                 )}
                 onClick={() => {
                   onSelect(persona);
@@ -115,8 +119,8 @@ export function PersonaSelector({ selectedPersona, onSelect, className }: Person
                     {getInitials(persona.name)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium flex items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 font-medium">
                     <span className="truncate">{persona.name}</span>
                     {persona.is_default && (
                       <Badge variant="secondary" className="text-xs">
@@ -125,17 +129,19 @@ export function PersonaSelector({ selectedPersona, onSelect, className }: Person
                     )}
                   </div>
                   {persona.description && (
-                    <div className="text-xs text-muted-foreground truncate">
+                    <div className="text-muted-foreground truncate text-xs">
                       {persona.description}
                     </div>
                   )}
                 </div>
-                {selectedPersona?.id === persona.id && <Check className="h-4 w-4 shrink-0" />}
+                {selectedPersona?.id === persona.id && (
+                  <Check className="h-4 w-4 shrink-0" />
+                )}
               </div>
             ))
           )}
 
-          <div className="border-t mt-1">
+          <div className="mt-1 border-t">
             <Button
               variant="ghost"
               className="w-full justify-start"
@@ -145,7 +151,7 @@ export function PersonaSelector({ selectedPersona, onSelect, className }: Person
                 window.location.href = "/personas";
               }}
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               Manage Personas
             </Button>
           </div>

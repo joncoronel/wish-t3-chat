@@ -22,8 +22,8 @@ export default async function ChatServer({ searchParams }: ChatPageProps) {
     redirect("/login");
   }
 
-  const conversations = await getConversations(user.id);
-  const { apiKeys, preferences } = await getUserSettingsData(user.id);
+  const conversations = getConversations(user.id);
+  const userSettingsPromise = getUserSettingsData(user.id);
 
   // If we have a chat ID, prefetch the data on the server for initial load
   if (chatId) {
@@ -31,8 +31,12 @@ export default async function ChatServer({ searchParams }: ChatPageProps) {
 
     const fallbackData: Record<string, unknown> = {
       [`messages-${chatId}-main`]: messagesPromise,
-      [`encrypted-api-keys-${user.id}`]: apiKeys,
-      [`user-preferences-${user.id}`]: preferences,
+      [`encrypted-api-keys-${user.id}`]: userSettingsPromise.then(
+        (data) => data.apiKeys,
+      ),
+      [`user-preferences-${user.id}`]: userSettingsPromise.then(
+        (data) => data.preferences,
+      ),
       [`conversations-${user.id}`]: conversations,
     };
 
@@ -48,8 +52,12 @@ export default async function ChatServer({ searchParams }: ChatPageProps) {
   }
 
   const fallbackData: Record<string, unknown> = {
-    [`encrypted-api-keys-${user.id}`]: apiKeys,
-    [`user-preferences-${user.id}`]: preferences,
+    [`encrypted-api-keys-${user.id}`]: userSettingsPromise.then(
+      (data) => data.apiKeys,
+    ),
+    [`user-preferences-${user.id}`]: userSettingsPromise.then(
+      (data) => data.preferences,
+    ),
     [`conversations-${user.id}`]: conversations,
   };
 
