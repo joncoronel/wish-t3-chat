@@ -524,7 +524,7 @@ export function ModelSelector({
             <CommandGroup heading="Configuration">
               <CommandItem asChild className="text-muted-foreground">
                 <Link
-                  href="/settings"
+                  href="/settings/general"
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setOpen(false)}
